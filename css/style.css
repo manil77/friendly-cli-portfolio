@@ -1,0 +1,43 @@
+body {
+    background-color: black;
+}
+
+.terminal-container {
+    color: #00ff88;
+    font-family: "Courier New", Courier, monospace;
+    font-size: xx-large;
+}
+
+.terminal-input-line {
+    display: flex;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.terminal-input-line span {
+    user-select: none;
+    font-weight: bold;
+    margin-right: 5px;
+    color: #00ff88;
+}
+.terminal-input-line input {
+    background: black;
+    border: none;
+    outline: none;
+    color: #00ff88;
+    font-family: monospace;
+    font-size: 1.1rem;
+    flex-grow: 1;
+    caret-color: #00ff88;
+    animation: blinkCaret 1.2s ease-in-out infinite;
+}
+
+@keyframes blinkCaret {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.2;
+    } /* Optional: adjust to make it more subtle */
+}
