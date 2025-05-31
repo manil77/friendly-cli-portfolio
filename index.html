@@ -1,22 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="stylesheet" href="css/style.css">
+    <title>CLI Portfolio</title>
+    <style></style>
   </head>
   <body>
+    <!-- Scanlines overlay -->
+    <div id="scanlines"></div>
 
-    <!-- Terminal Interface -->
-    <div class="terminal-container" id="terminalContainer">
-      <div class="terminal-output" id="terminalOutput"></div>
-      <div class="terminal-input-line">
-        <span>&gt;</span>
-        <input type="text" id="terminalInput" autofocus autocomplete="off"/>
+    <!-- Loader -->
+    <div id="loader" role="alert" aria-live="assertive" aria-atomic="true" aria-label="Loading content">
+      <div id="command">guest@cli:~$ initializing system...</div>
+      <div id="progress-container" aria-hidden="true">
+        <div id="progress-bar"></div>
       </div>
     </div>
+
+    <!-- 3D Background -->
+    <canvas id="bg"></canvas>
+
+    <div id="cli">
+      <div id="help">
+        <strong>Available commands:</strong><br/>
+        - <code>about</code>, <code>contact</code>, <code>history</code>, <code>clear</code>
+      </div>
+
+      <div id="output"></div>
+
+      <div class="input-line">
+        <span class="prompt">guest@cli:~$</span>
+        <input type="text" id="commandInput" autofocus autocomplete="off" spellcheck="false"/>
+      </div>
+
+      <div id="branding">
+        <img src="c.jpg" alt="Avatar"/>
+        <div class="brand-text">
+          <div class="name">Manil Maharjan</div>
+          <div class="tagline">Creative Web Developer & Designer</div>
+        </div>
+      </div>
+    </div>
+
+    <audio id="typeSound" src="https://assets.mixkit.co/sfx/preview/mixkit-fast-typing-on-laptop-keyboard-2583.mp3"></audio>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
+    <script src="script/script.js"></script>
   </body>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <script src="script/script.js"></script>
 </html>

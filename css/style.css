@@ -1,43 +1,293 @@
-body {
-    background-color: black;
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code&display=swap");
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-.terminal-container {
+body,
+html {
+    font-family: "Fira Code", monospace;
+    height: 100%;
+    background: #000;
     color: #00ff88;
-    font-family: "Courier New", Courier, monospace;
-    font-size: xx-large;
+    overflow-x: hidden; /* prevent horizontal scroll */
+    overflow-y: hidden; /* keep your overflow hidden as you had */
 }
 
-.terminal-input-line {
+canvas#bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+}
+
+/* === NEW Loader styles === */
+
+#scanlines {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 255, 0, 0.07),
+        rgba(0, 255, 0, 0.07) 1px,
+        transparent 2px,
+        transparent 4px
+    );
+    animation: scanlineMove 3s linear infinite;
+    z-index: 1001;
+}
+
+@keyframes scanlineMove {
+    0% {
+        background-position-y: 0;
+    }
+    100% {
+        background-position-y: 4px;
+    }
+}
+
+#loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 1000;
+}
+
+#command {
+    font-size: 1.2rem;
+    white-space: nowrap;
+    letter-spacing: 1.3px;
+    line-height: 1.3;
+    color: #00ff00;
+    text-shadow: 0 0 6px #00ff00aa, 0 0 12px #00ff00bb, 0 0 18px #00ff00dd;
+    overflow: hidden;
+    border-right: 2px solid #00ff00;
+    width: 0;
+    animation: typing 3.5s steps(36) forwards, blink 1s step-end infinite;
+    margin-bottom: 25px;
+    font-family: "Fira Code", monospace;
+}
+
+@keyframes typing {
+    from {
+        width: 0;
+    }
+    to {
+        width: 23ch;
+    }
+}
+
+@keyframes blink {
+    50% {
+        border-color: transparent;
+    }
+    100% {
+        border-color: #00ff00;
+    }
+}
+
+#progress-container {
+    width: 400px;
+    max-width: 90vw;
+    height: 14px;
+    border: 2px solid #00ff00;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #001000;
+    box-shadow: inset 0 0 10px #00ff00bb;
+}
+
+#progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #00ff00, #00ff66);
+    width: 0;
+    box-shadow: 0 0 10px #00ff00, 0 0 20px #00ff66, 0 0 30px #00ff33;
+    animation: progressFill 5s forwards;
+}
+
+@keyframes progressFill {
+    from {
+        width: 0;
+    }
+    to {
+        width: 100%;
+    }
+}
+
+.fade-out {
+    animation: fadeOut 1s forwards;
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-20px);
+    }
+}
+
+/* === Existing CLI styles === */
+
+#cli {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100vh;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.6);
+    font-size: 1rem;
+}
+
+#help {
+    font-size: 0.95rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #333;
+    padding: 10px;
+    border-radius: 6px;
+    user-select: text;
+}
+
+#output {
+    flex-grow: 1;
+    overflow-y: auto;
+    font-size: 1rem;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    margin-top: 10px;
+    padding-bottom: 80px; /* to prevent output hidden behind branding */
+    scrollbar-width: thin;
+    scrollbar-color: #00ff88 #222;
+}
+
+#output::-webkit-scrollbar {
+    width: 8px;
+}
+
+#output::-webkit-scrollbar-thumb {
+    background: #00ff88;
+    border-radius: 10px;
+}
+
+.output-line {
+    opacity: 0;
+    animation: fadeIn 0.6s ease forwards;
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+.input-line {
     display: flex;
     align-items: center;
-    margin-top: 1rem;
+    border-top: 1px solid #333;
+    padding-top: 10px;
+    flex-wrap: nowrap;
 }
 
-.terminal-input-line span {
-    user-select: none;
-    font-weight: bold;
-    margin-right: 5px;
-    color: #00ff88;
+.prompt {
+    color: #00ffff;
+    margin-right: 10px;
+    flex-shrink: 0;
 }
-.terminal-input-line input {
-    background: black;
+
+input#commandInput {
+    flex-grow: 1;
+    background: transparent;
     border: none;
     outline: none;
     color: #00ff88;
-    font-family: monospace;
-    font-size: 1.1rem;
-    flex-grow: 1;
+    font-family: inherit;
+    font-size: 1rem;
     caret-color: #00ff88;
-    animation: blinkCaret 1.2s ease-in-out infinite;
+    min-width: 0;
 }
 
-@keyframes blinkCaret {
-    0%,
-    100% {
-        opacity: 1;
+#branding {
+    position: absolute;
+    right: clamp(10px, 5vw, 20px);
+    bottom: clamp(40px, 7vh, 70px);
+    background: rgba(30, 15, 0, 0.6);
+    border: 1px solid #ff6600;
+    border-radius: 8px;
+    padding: 10px 15px;
+    color: #ff7700;
+    display: flex;
+    gap: 12px;
+    font-size: clamp(0.8rem, 1.5vw, 1rem);
+    font-weight: 600;
+    width: clamp(180px, 20vw, 260px);
+}
+
+#branding img {
+    width: clamp(40px, 6vw, 50px);
+    height: clamp(40px, 6vw, 50px);
+    border-radius: 50%;
+    border: 2px solid #ff6600;
+    object-fit: cover;
+}
+
+#branding .brand-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.name {
+    font-weight: 700;
+    font-size: 1.15rem;
+}
+
+.tagline {
+    font-style: italic;
+    font-size: 0.85rem;
+    color: #ffbb66;
+}
+
+/* Responsive tweaks for smaller screens */
+@media (max-width: 480px) {
+    #cli {
+        padding: 10px;
+        font-size: 0.85rem;
     }
-    50% {
-        opacity: 0.2;
-    } /* Optional: adjust to make it more subtle */
+
+    #branding {
+        width: 180px;
+        font-size: 0.8rem;
+        bottom: 40px;
+        right: 10px;
+        padding: 8px 10px;
+    }
+
+    #branding img {
+        width: 40px;
+        height: 40px;
+    }
+
+    #help {
+        font-size: 0.8rem;
+    }
+
+    input#commandInput {
+        font-size: 0.9rem;
+        min-width: 0;
+    }
 }
