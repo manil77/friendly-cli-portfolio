@@ -117,10 +117,53 @@ const typeSound = document.getElementById("typeSound");
 
 const commands = {
     about: () =>
-        `Hi, I'm Manil — a creative web developer passionate about crafting fun, engaging web experiences.`,
+        `Hey there! I’m a software engineer who loves turning coffee ☕ into code.
+I've spent the last 3 years building web apps using .NET, NestJS, and PostgreSQL.
+I'm obsessed with clean UIs, smooth UX, and making things intuitive and easy to use.
+
+Outside of coding, you’ll find me sketching random ideas or gaming with friends (and internet strangers).`,
+
     contact: () =>
-        `Email: manil.maharjan07@gmail.com\nLinkedIn:https://www.linkedin.com/in/iammanil/\nGitHub: https://github.com/manil77`,
-    history: () => `You have entered ${historyCount} commands so far.`,
+        `Got a project, idea, or just want to say hi? I'm all ears (and keyboards)!
+📧 Email: manil.maharjan07@gmail.com
+💼 LinkedIn: <a href="https://www.linkedin.com/in/iammanil" target="_blank">linkedin.com/in/iammanil</a>
+📱 Phone: +977 9863777960`,
+
+    skills: () =>
+        `💻 Things I know my way around:
+Frontend: JavaScript/TypeScript, jQuery, Tailwind, HTML/CSS
+Backend: .NET, NestJS, PostgreSQL, SQL Server, REST APIs, Entity Framework, Dapper
+DevOps & Tools: Azure DevOps, IIS, Git/GitHub`,
+
+    projects: () =>
+        `Here are some of the projects I've had the chance to work on:<br><br>
+
+<div class="project-item">
+  <img src="https://www.figma.com/community/resource/655799f6-88b9-4f1c-8b69-5d03eb16de14/thumbnail" alt="RemitX Screenshot" class="project-image" />
+  <div class="project-info">
+    <strong>RemitX</strong> – A white-label remittance solution.<br>
+    A scalable, browser-based system for financial institutions to handle cross-border transfers securely. Built on .NET and SQL Server, it also uses Azure Service Bus and Blob Storage. It has streamlined compliance and made transaction posting ultra-accurate.
+  </div>
+</div>
+
+<div class="project-item">
+  <img src="https://www.figma.com/community/resource/655799f6-88b9-4f1c-8b69-5d03eb16de14/thumbnail" alt="RemitX Screenshot" class="project-image" />
+  <div class="project-info">
+    <strong>HUKU</strong> – A slick real estate platform.<br>
+    Searchable listings, property uploads, image galleries, authentication, visit scheduling, and agent dashboards. Built with Nunjucks, NestJS, and SQLite — everything a local property site needs.
+  </div>
+</div>
+
+<div class="project-item">
+  <img src="https://www.figma.com/community/resource/655799f6-88b9-4f1c-8b69-5d03eb16de14/thumbnail" alt="RemitX Screenshot" class="project-image" />
+  <div class="project-info">
+    <strong>Heifer PMIS</strong> – Project management for NGOs.<br>
+    Built for Heifer International using .NET and PostgreSQL. It tracks projects, budgets, and stakeholders, and includes dashboards, alerts, and document uploads for smoother NGO operations.
+  </div>
+</div>`,
+
+    history: () => `You’ve entered ${historyCount} commands so far.`,
+
     clear: () => {
         output.innerHTML = "";
         return "";

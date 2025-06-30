@@ -291,3 +291,44 @@ input#commandInput {
         min-width: 0;
     }
 }
+
+.project-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.project-image {
+    width: 240px;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    flex-shrink: 0;
+}
+
+.project-info {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #eee; /* or match your terminal theme */
+}
+
+@media (max-width: 640px) {
+    .project-item {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .project-image {
+        width: 100%;
+        height: auto;
+    }
+
+    .project-info {
+        text-align: center;
+        margin-top: 12px;
+    }
+}
