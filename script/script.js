@@ -114,60 +114,144 @@ window.addEventListener("resize", () => {
 const commandInput = document.getElementById("commandInput");
 const output = document.getElementById("output");
 const typeSound = document.getElementById("typeSound");
-
 const commands = {
     about: () =>
-        `Hey there! I’m a software engineer who loves turning coffee ☕ into code.
-I've spent the last 3 years building web apps using .NET, NestJS, and PostgreSQL.
-I'm obsessed with clean UIs, smooth UX, and making things intuitive and easy to use.
-
-Outside of coding, you’ll find me sketching random ideas or gaming with friends (and internet strangers).`,
+        `<p style="text-align: left; padding: 16px; margin: 0; line-height: 1.6;">
+            Hey there! I’m a software engineer who loves turning coffee ☕ into code.<br><br>
+            I've spent the last 3 years building web apps using .NET, NestJS, and PostgreSQL.<br>
+            I'm obsessed with clean UIs, smooth UX, and making things intuitive and easy to use.<br><br>
+            Outside of coding, you’ll find me sketching random ideas or gaming with friends (and internet strangers).
+        </p>`,
 
     contact: () =>
-        `Got a project, idea, or just want to say hi? I'm all ears (and keyboards)!
-📧 Email: manil.maharjan07@gmail.com
-💼 LinkedIn: <a href="https://www.linkedin.com/in/iammanil" target="_blank">linkedin.com/in/iammanil</a>
-📱 Phone: +977 9863777960`,
+        `<p style="text-align: left; padding: 16px; margin: 0; line-height: 1.6;">
+            Got a project, idea, or just want to say hi? I'm all ears (and keyboards)!<br><br>
+            📧 Email: <a href="mailto:manil.maharjan07@gmail.com">manil.maharjan07@gmail.com</a><br>
+            💼 LinkedIn: <a href="https://www.linkedin.com/in/iammanil" target="_blank">linkedin.com/in/iammanil</a><br>
+            📱 Phone: +977 9863777960
+        </p>`,
 
     skills: () =>
-        `💻 Things I know my way around:
-Frontend: JavaScript/TypeScript, jQuery, Tailwind, HTML/CSS
-Backend: .NET, NestJS, PostgreSQL, SQL Server, REST APIs, Entity Framework, Dapper
-DevOps & Tools: Azure DevOps, IIS, Git/GitHub`,
+    `<p style="text-align: left; padding: 16px; margin: 0; line-height: 1.6;">
+        💻 <strong>Things I know my way around:</strong><br><br>
+        🌐 <strong>Frontend:</strong> JavaScript/TypeScript, jQuery, Tailwind, HTML/CSS<br>
+        🛠️ <strong>Backend:</strong> .NET, NestJS, PostgreSQL, SQL Server, REST APIs, Entity Framework, Dapper<br>
+        🚀 <strong>DevOps & Tools:</strong> Azure DevOps, IIS, Git/GitHub
+    </p>`,
 
-    projects: () =>
-        `Here are some of the projects I've had the chance to work on:<br><br>
 
-<div class="project-item">
-  <img src="https://www.figma.com/community/resource/655799f6-88b9-4f1c-8b69-5d03eb16de14/thumbnail" alt="RemitX Screenshot" class="project-image" />
-  <div class="project-info">
-    <strong>RemitX</strong> – A white-label remittance solution.<br>
-    A scalable, browser-based system for financial institutions to handle cross-border transfers securely. Built on .NET and SQL Server, it also uses Azure Service Bus and Blob Storage. It has streamlined compliance and made transaction posting ultra-accurate.
-  </div>
-</div>
+    projects: () =>{
+        const html = `<div style="padding: 16px; margin: 0; line-height: 1.6; text-align: left;">
+                        <p>Here are some of the projects I've had the chance to work on:</p>
 
-<div class="project-item">
-  <img src="https://www.figma.com/community/resource/655799f6-88b9-4f1c-8b69-5d03eb16de14/thumbnail" alt="RemitX Screenshot" class="project-image" />
-  <div class="project-info">
-    <strong>HUKU</strong> – A slick real estate platform.<br>
-    Searchable listings, property uploads, image galleries, authentication, visit scheduling, and agent dashboards. Built with Nunjucks, NestJS, and SQLite — everything a local property site needs.
-  </div>
-</div>
+                        <div class="project-item" style="margin-bottom: 24px;">
+                        <img src="images/remitx.png" alt="RemitX Screenshot" class="project-image" />
+                        <div class="project-info" style="margin-top: 8px;">
+                            <strong>RemitX</strong> – A white-label remittance solution.<br>
+                            A scalable, browser-based system for financial institutions to handle cross-border transfers securely. 
+                            Built on .NET and SQL Server, it also uses Azure Service Bus and Blob Storage. 
+                            It has streamlined compliance and made transaction posting ultra-accurate.
+                        </div>
+                    </div>
 
-<div class="project-item">
-  <img src="https://www.figma.com/community/resource/655799f6-88b9-4f1c-8b69-5d03eb16de14/thumbnail" alt="RemitX Screenshot" class="project-image" />
-  <div class="project-info">
-    <strong>Heifer PMIS</strong> – Project management for NGOs.<br>
-    Built for Heifer International using .NET and PostgreSQL. It tracks projects, budgets, and stakeholders, and includes dashboards, alerts, and document uploads for smoother NGO operations.
-  </div>
-</div>`,
+                    <div class="project-item" style="margin-bottom: 24px;">
+                        <img src="images/huku.png" alt="HUKU Screenshot" class="project-image" />
+                        <div class="project-info" style="margin-top: 8px;">
+                            <strong>HUKU</strong> – A slick real estate platform.<br>
+                            Searchable listings, property uploads, image galleries, authentication, visit scheduling, and agent dashboards.
+                            Built with Nunjucks, NestJS, and SQLite — everything a local property site needs.
+                        </div>
+                    </div>
 
-    history: () => `You’ve entered ${historyCount} commands so far.`,
+                    <div class="project-item">
+                        <img src="images/heifer.png" alt="Heifer PMIS Screenshot" class="project-image" />
+                        <div class="project-info" style="margin-top: 8px;">
+                            <strong>Heifer PMIS</strong> – Project management for NGOs.<br>
+                            Built for Heifer International using .NET and PostgreSQL. 
+                            It tracks projects, budgets, and stakeholders, and includes dashboards, alerts, and document uploads 
+                            for smoother NGO operations.
+                        </div>
+                    </div>
+                </div>`;
+                setTimeout(scrollToBottom, 0);
+            return html;
+},
 
     clear: () => {
         output.innerHTML = "";
         return "";
     },
+
+    cls: () => {
+        output.innerHTML = "";
+        return "";
+    },
+    // souvenir: async () => {
+    //     try {
+    //         const response = await fetch("images/souvenir.pdf");
+    //         if (!response.ok) throw new Error("Network response was not ok");
+
+    //         const blob = await response.blob();
+    //         const url = URL.createObjectURL(blob);
+
+    //         const link = document.createElement("a");
+    //         link.href = url;
+    //         link.download = "souvenir.pdf";
+    //         document.body.appendChild(link);
+    //         link.click();
+    //         document.body.removeChild(link);
+
+    //         URL.revokeObjectURL(url);
+
+    //         return "Souvenir downloaded! Check your downloads folder.";
+    //     } catch (error) {
+    //         return `Failed to download souvenir: ${error.message}`;
+    //     }
+    // },
+
+    exit:()=>{
+        window.close();
+    },
+    history: () => `
+<div style="text-align: left; padding: 16px; margin: 0; line-height: 1.6;">
+    <h3 style="margin-bottom: 12px;">📜 Work History</h3>
+
+    <div style="margin-bottom: 20px;">
+        <strong>🧱 NET Developer – Inficare</strong><br>
+        <em>Feb 2024 – Present</em><br>
+        • Integrated Partner Send/Pull APIs to enable seamless communication between external systems.<br>
+        • Upgraded system from .NET Framework 4.7.2 to .NET 8 using Clean Architecture, Repository Pattern, and Unit of Work.<br>
+        • Enhanced admin panel to manage customer data more efficiently.<br>
+        • Delivered key features based on requests from leadership, including the CEO.<br>
+        <strong>Technologies:</strong> ASP.NET 4.7, 6, 8, SQL Server, Dapper, Azure DevOps, IIS
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <strong>🏥 NET Developer – Team Next I.C.T Solutions</strong><br>
+        <em>Apr 2022 – Feb 2024</em><br>
+        • Lead dev for Heifer Cambodia’s PMER system: built, maintained, and demoed for clients.<br>
+        • Conducted training, mentored juniors, and contributed to Heifer Nepal’s backend team.<br>
+        • Worked on HRDC redesign, Heifer VCC, B&B Hospital’s CRM system, and Internal Review Committee tool.<br>
+        • Strong foundation in ASP.NET MVC, QA, client interaction, and documentation.<br>
+        <strong>Technologies:</strong> ASP.NET MVC, PostgreSQL, SQL Server, ReactJS, Git, Entity Framework, IIS
+    </div>
+
+    <div>
+        <strong>🏠 NestJS Developer – HUKU (Freelance)</strong><br>
+        <em>Jan 2025 – Aug 2025</em><br>
+        • Built a full-featured real estate platform with listings, uploads, dashboards, and visit scheduling.<br>
+        • Used NestJS for backend, Nunjucks for templating, and SQLite for storage.<br>
+        • Gathered business requirements and delivered features aligned with goals.<br>
+        <strong>Technologies:</strong> NestJS, Nunjucks, TypeORM, SQLite
+    </div>
+</div>
+`,
+
+};
+
+const scrollToBottom = () => {
+    const outputEl = document.getElementById("output");
+    outputEl.scrollTo({ top: outputEl.scrollHeight, behavior: "smooth" });
 };
 
 let historyCount = 0;
