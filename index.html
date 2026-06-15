@@ -1,54 +1,229 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <link rel="stylesheet" href="css/style.css">
-    <title>CLI Portfolio</title>
-    <style></style>
-  </head>
-  <body>
-    <!-- Scanlines overlay -->
-    <div id="scanlines"></div>
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Manil Maharjan — guest@cli</title>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --black:#050a06; --green:#00ff88; --green-bright:#00ff00; --green-dim:#00cc6e; --green-deep:#007a44;
+    --cyan:#00ffff; --amber:#ff7700; --amber-soft:#ffbb66; --error:#ff4d4d; --muted:#2f6b4a; --dim:#4f9a72;
+    --mono:"Fira Code",ui-monospace,monospace;
+    --glow:0 0 6px #00ff0088, 0 0 12px #00ff00aa;
+    --glow-soft:0 0 4px #00ff8866, 0 0 10px #00ff8844;
+    --glow-cyan:0 0 6px #00ffff88, 0 0 14px #00ffff66;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{background:#000;color:var(--green);font-family:var(--mono);font-size:16px;line-height:1.7;overflow:hidden;}
+  ::selection{background:var(--green);color:#000;}
+  a{color:var(--cyan);text-shadow:var(--glow-cyan);text-decoration:none;border-bottom:1px dotted var(--cyan);}
 
-    <!-- Loader -->
-    <div id="loader" role="alert" aria-live="assertive" aria-atomic="true" aria-label="Loading content">
-      <div id="command">guest@cli:~$ initializing systemm...</div>
-      <div id="progress-container" aria-hidden="true">
-        <div id="progress-bar"></div>
-      </div>
+  /* CRT layers */
+  .scan{position:fixed;inset:0;pointer-events:none;z-index:50;
+    background:repeating-linear-gradient(0deg,rgba(0,255,0,.05),rgba(0,255,0,.05) 1px,transparent 2px,transparent 4px);
+    animation:scan 3s linear infinite;}
+  @keyframes scan{to{background-position-y:4px;}}
+  .vig{position:fixed;inset:0;pointer-events:none;z-index:49;
+    background:radial-gradient(120% 90% at 50% 45%,transparent 55%,rgba(0,0,0,.75) 100%);}
+  @media(prefers-reduced-motion:reduce){.scan{animation:none;}}
+
+  /* boot */
+  .boot{position:fixed;inset:0;background:#000;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;}
+  .boot .cmd{color:var(--green-bright);text-shadow:var(--glow);letter-spacing:.08em;font-size:18px;}
+  .boot .barwrap{width:min(420px,76vw);height:14px;border:2px solid var(--green-bright);border-radius:6px;background:#001000;overflow:hidden;box-shadow:inset 0 0 10px #00ff00bb;}
+  .boot .bar{height:100%;width:0;background:linear-gradient(90deg,var(--green-bright),var(--green));box-shadow:0 0 10px #00ff00;}
+  .boot .pct{color:var(--muted);font-size:12px;}
+  .boot.hide{opacity:0;transform:translateY(-12px);transition:.5s cubic-bezier(.16,1,.3,1);pointer-events:none;}
+
+  /* terminal */
+  .screen{position:relative;z-index:1;height:100vh;display:flex;flex-direction:column;padding:26px clamp(18px,5vw,64px);}
+  .bar-top{display:flex;align-items:center;gap:8px;padding-bottom:14px;border-bottom:1px solid #16271c;margin-bottom:16px;}
+  .bar-top .dot{width:11px;height:11px;border-radius:50%;}
+  .bar-top .r{background:var(--error);} .bar-top .y{background:var(--amber);} .bar-top .g{background:var(--green);}
+  .bar-top .title{margin-left:10px;font-size:12px;color:var(--muted);}
+  .out{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--green-deep) #000;padding-right:8px;}
+  .out::-webkit-scrollbar{width:8px;} .out::-webkit-scrollbar-thumb{background:var(--green-deep);border-radius:10px;}
+
+  .block{margin-bottom:18px;animation:fade .5s cubic-bezier(.16,1,.3,1) both;}
+  @keyframes fade{from{opacity:0;transform:translateY(3px);}}
+  .prompt{color:var(--cyan);text-shadow:var(--glow-cyan);}
+  .echo{color:var(--green);}
+  .resp{color:var(--green);text-shadow:var(--glow-soft);}
+  .resp .em{color:#ccffe0;font-weight:500;}
+  .resp .muted{color:var(--dim);}
+  .err{color:var(--error);text-shadow:0 0 6px #ff000088;}
+
+  .banner{color:var(--green);text-shadow:var(--glow-soft);font-size:12px;line-height:1.15;margin-bottom:14px;white-space:pre;}
+  .cmdlist{display:flex;flex-direction:column;gap:4px;margin-top:6px;}
+  .cmdrow{display:flex;align-items:center;gap:14px;}
+  .cmdrow .c{color:var(--green);min-width:150px;cursor:pointer;}
+  .cmdrow .c:hover{color:#ccffe0;text-shadow:var(--glow-soft);}
+  .cmdrow .desc{color:var(--dim);font-size:14px;}
+  .badge{display:inline-block;font-size:10px;letter-spacing:.12em;color:#000;background:var(--amber);
+    padding:1px 7px;border-radius:999px;font-weight:600;box-shadow:0 0 8px #ff770099;animation:pulse 1.6s ease-in-out infinite;vertical-align:middle;}
+  @keyframes pulse{50%{opacity:.55;}}
+  .modern .c{color:var(--amber);text-shadow:0 0 8px #ff770066;}
+  .modern .c:hover{color:var(--amber-soft);}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0;}
+  .chip{border:1px solid #244a34;border-radius:999px;padding:4px 11px;font-size:13px;color:var(--green);}
+  .proj{margin:4px 0 14px;}
+  .proj .pn{color:var(--green);font-weight:600;text-shadow:var(--glow-soft);}
+  .proj .pt{color:var(--muted);font-size:12px;}
+  .proj .pd{color:var(--dim);font-size:14px;}
+
+  .inputline{display:flex;align-items:center;gap:10px;border-top:1px solid #16271c;padding-top:14px;margin-top:8px;}
+  .inputline input{flex:1;background:transparent;border:none;outline:none;color:var(--green);caret-color:var(--green);font-family:inherit;font-size:16px;}
+  .inputline input::placeholder{color:var(--muted);}
+  .cur{display:inline-block;width:10px;height:1.05em;background:var(--green);box-shadow:var(--glow-soft);animation:blink 1s step-end infinite;}
+  @keyframes blink{50%{opacity:0;}}
+
+  /* identity badge */
+  .ident{position:fixed;right:clamp(16px,4vw,34px);bottom:clamp(16px,4vh,30px);z-index:40;display:flex;gap:12px;align-items:center;
+    background:rgba(30,15,0,.6);border:1px solid var(--amber);border-radius:8px;padding:10px 14px;box-shadow:0 0 0 1px #ff660033,0 0 14px #ff660033;backdrop-filter:blur(3px);}
+  .ident img{width:44px;height:44px;border-radius:50%;border:2px solid var(--amber);object-fit:cover;}
+  .ident .nm{color:var(--amber);font-weight:600;font-size:15px;line-height:1.3;}
+  .ident .tg{color:var(--amber-soft);font-style:italic;font-size:12px;line-height:1.3;}
+  @media(max-width:600px){.ident{display:none;}}
+
+  /* page-out transition to modern */
+  .wipe{position:fixed;inset:0;z-index:300;background:#000;transform:scaleY(0);transform-origin:bottom;pointer-events:none;}
+  .wipe.go{transform:scaleY(1);transition:transform .55s cubic-bezier(.7,0,.3,1);}
+  .wipe .msg{position:absolute;inset:0;display:grid;place-items:center;color:var(--green-bright);text-shadow:var(--glow);opacity:0;letter-spacing:.1em;}
+  .wipe.go .msg{opacity:1;transition:opacity .3s .25s;}
+</style>
+</head>
+<body>
+  <!-- BOOT -->
+  <div class="boot" id="boot">
+    <div class="cmd">guest@cli:~$ initializing system…</div>
+    <div class="barwrap"><div class="bar" id="bootbar"></div></div>
+    <div class="pct" id="bootpct">0%</div>
+  </div>
+
+  <div class="screen">
+    <div class="bar-top">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="title">guest@cli:~ — manil maharjan</span>
     </div>
-
-    <!-- 3D Background -->
-    <canvas id="bg"></canvas>
-
-    <div id="cli">
-      <div id="help">
-        <strong>Available commands:</strong><br/>
-        - <code>about</code>, <code>skills</code>, <code>projects</code>, 
-        <!-- <code>souvenir</code>, -->
-         <code>contact</code>, <code>history</code>, <code>clear</code>, <code>exit</code>
-      </div>
-
-      <div id="output"></div>
-
-      <div class="input-line">
-        <span class="prompt">guest@cli:~$</span>
-        <input type="text" id="commandInput" autofocus autocomplete="off" spellcheck="false"/>
-      </div>
-
-      <div id="branding">
-        <img src="c.jpg" alt="Avatar"/>
-        <div class="brand-text">
-          <div class="name">Manil Maharjan</div>
-          <div class="tagline">Software Enginner</div>
-        </div>
-      </div>
+    <div class="out" id="out"></div>
+    <div class="inputline" id="inputline" onclick="document.getElementById('cmd').focus()">
+      <span class="prompt">guest@cli:~$</span>
+      <input id="cmd" autocomplete="off" spellcheck="false" autofocus placeholder="type a command — try 'help'"/>
     </div>
+  </div>
 
-    <audio id="typeSound" src="https://assets.mixkit.co/sfx/preview/mixkit-fast-typing-on-laptop-keyboard-2583.mp3"></audio>
+  <div class="ident">
+    <img src="assets/avatar.jpg" alt="Manil"/>
+    <div><div class="nm">Manil Maharjan</div><div class="tg">Software Engineer</div></div>
+  </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
-    <script src="script/script.js"></script>
-  </body>
+  <div class="scan"></div>
+  <div class="vig"></div>
+  <div class="wipe" id="wipe"><div class="msg">loading modern view…</div></div>
+
+  <script>
+  (function(){
+    var out = document.getElementById('out'), input = document.getElementById('cmd');
+    var log = [], logIdx = -1;
+
+    var banner =
+"  __  __             _ _\n"+
+" |  \\/  | __ _ _ __ (_) |\n"+
+" | |\\/| |/ _` | '_ \\| | |\n"+
+" | |  | | (_| | | | | | |\n"+
+" |_|  |_|\\__,_|_| |_|_|_|";
+
+    function el(html){ var d=document.createElement('div'); d.className='block'; d.innerHTML=html; return d; }
+    function scroll(){ out.scrollTop = out.scrollHeight; }
+    function echo(cmd){ return '<div><span class="prompt">guest@cli:~$</span> <span class="echo">'+cmd+'</span></div>'; }
+
+    var commands = {
+      help: function(){
+        var rows = [
+          ['about','who I am'],
+          ['skills','what I work with'],
+          ['projects','selected work'],
+          ['experience','where I\'ve been'],
+          ['contact','how to reach me'],
+          ['clear','clear the screen']
+        ];
+        var html = '<div class="resp"><span class="em">Available commands</span><div class="cmdlist">';
+        rows.forEach(function(r){ html += '<div class="cmdrow"><span class="c" data-cmd="'+r[0]+'">'+r[0]+'</span><span class="desc">'+r[1]+'</span></div>'; });
+        // the special one
+        html += '<div class="cmdrow modern"><span class="c" data-cmd="switch-modern">switch-modern</span> <span class="badge">NEW</span><span class="desc">enter the modern visual portfolio →</span></div>';
+        html += '</div><div class="muted" style="margin-top:8px">tip: click a command or type it and press enter</div></div>';
+        return html;
+      },
+      about: function(){ return '<div class="resp">Hey there! I\'m a <span class="em">software engineer</span> who loves turning coffee into code.<br/><br/>'+
+        'I\'ve spent the last 3 years building web apps with <span class="em">.NET</span>, <span class="em">NestJS</span> and PostgreSQL. I\'m obsessed with clean UIs, smooth UX, and making things intuitive.<br/><br/>'+
+        '<span class="muted">Outside of coding, you\'ll find me sketching ideas or gaming with friends.</span></div>'; },
+      skills: function(){ return '<div class="resp"><span class="em">Things I know my way around</span>'+
+        '<div class="chips"><span class="chip">JavaScript</span><span class="chip">TypeScript</span><span class="chip">.NET</span><span class="chip">NestJS</span><span class="chip">PostgreSQL</span><span class="chip">SQL Server</span><span class="chip">Entity Framework</span><span class="chip">Dapper</span><span class="chip">Tailwind</span><span class="chip">Azure DevOps</span><span class="chip">Git</span></div></div>'; },
+      projects: function(){ return '<div class="resp">'+
+        '<div class="proj"><span class="pn">RemitX</span> <span class="pt">· .NET · SQL Server · Azure</span><div class="pd">White-label remittance platform for secure cross-border transfers.</div></div>'+
+        '<div class="proj"><span class="pn">HUKU</span> <span class="pt">· NestJS · Nunjucks · SQLite</span><div class="pd">A slick real-estate platform built end to end.</div></div>'+
+        '<div class="proj"><span class="pn">Heifer PMIS</span> <span class="pt">· .NET · PostgreSQL</span><div class="pd">Project management &amp; PMER for NGOs.</div></div>'+
+        '<span class="muted">→ see these with visuals: run </span><span class="c" data-cmd="switch-modern" style="color:var(--amber);cursor:pointer">switch-modern</span></div>'; },
+      experience: function(){ return '<div class="resp">'+
+        '<div class="proj"><span class="pn">.NET Developer</span> <span class="pt">· Inficare · Feb 2024 — now</span><div class="pd">Partner API integration; upgraded .NET 4.7.2 → .NET 8 (Clean Architecture).</div></div>'+
+        '<div class="proj"><span class="pn">.NET Developer</span> <span class="pt">· Team Next · Apr 2022 — Feb 2024</span><div class="pd">Lead dev for Heifer Cambodia\'s PMER system; mentored juniors.</div></div>'+
+        '<div class="proj"><span class="pn">NestJS Developer</span> <span class="pt">· Freelance · HUKU · 2025</span><div class="pd">Built a full real-estate platform end to end.</div></div></div>'; },
+      contact: function(){ return '<div class="resp">Got a project, idea, or just want to say hi?<br/><br/>'+
+        '<span class="muted">email&nbsp;&nbsp;&nbsp;</span> <a href="mailto:manil.maharjan07@gmail.com">manil.maharjan07@gmail.com</a><br/>'+
+        '<span class="muted">linkedin</span> <a href="https://www.linkedin.com/in/iammanil" target="_blank" rel="noreferrer">linkedin.com/in/iammanil</a><br/>'+
+        '<span class="muted">phone&nbsp;&nbsp;&nbsp;</span> <span style="color:var(--green)">+977 9863777960</span></div>'; }
+    };
+
+    function run(raw){
+      var cmd = raw.trim().toLowerCase();
+      if(!cmd) return;
+      log.push(cmd); logIdx = log.length;
+      if(cmd==='clear'||cmd==='cls'){ out.innerHTML=''; return; }
+      if(cmd==='switch-modern'||cmd==='modern'||cmd==='switch'){ switchModern(cmd); return; }
+      var fn = commands[cmd];
+      if(fn){ out.appendChild(el(echo(cmd)+fn())); }
+      else { out.appendChild(el(echo(cmd)+'<div class="err">command not found: '+cmd+'. type <span style="color:var(--cyan)">help</span> for options.</div>')); }
+      scroll();
+    }
+
+    function switchModern(cmd){
+      out.appendChild(el(echo(cmd)+'<div class="resp">› booting modern visual portfolio<span class="cur"></span></div>'));
+      scroll();
+      var wipe = document.getElementById('wipe');
+      setTimeout(function(){ wipe.classList.add('go'); }, 450);
+      setTimeout(function(){ window.location.href = 'home-horizontal.html?intro=1'; }, 1150);
+    }
+
+    // expose for clicks
+    document.addEventListener('click', function(e){
+      var c = e.target.closest('[data-cmd]'); if(!c) return;
+      var cmd = c.getAttribute('data-cmd'); input.value=''; run(cmd); input.focus();
+    });
+
+    input.addEventListener('keydown', function(e){
+      if(e.key==='Enter'){ run(input.value); input.value=''; }
+      else if(e.key==='ArrowUp'){ e.preventDefault(); if(log.length){ logIdx=Math.max(0,logIdx-1); input.value=log[logIdx]||''; } }
+      else if(e.key==='ArrowDown'){ e.preventDefault(); if(logIdx<log.length){ logIdx++; input.value=log[logIdx]||''; } }
+    });
+
+    // boot sequence
+    var boot=document.getElementById('boot'), bar=document.getElementById('bootbar'), pct=document.getElementById('bootpct');
+    var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function startTerminal(){
+      out.appendChild(el('<div class="banner">'+banner+'</div><div class="resp">welcome — type <span style="color:var(--cyan)">help</span> or click a command to explore. <span class="muted">(looking for the visual site? run </span><span class="c" data-cmd="switch-modern" style="color:var(--amber);cursor:pointer">switch-modern</span><span class="muted">)</span></div>'));
+      out.appendChild(el(echo('help')+commands.help()));
+      scroll(); input.focus();
+    }
+    if(reduce){ boot.style.display='none'; startTerminal(); }
+    else {
+      var n=0; var iv=setInterval(function(){ n+=Math.random()*13+6; if(n>=100){n=100;clearInterval(iv);
+        setTimeout(function(){ boot.classList.add('hide'); startTerminal(); }, 380); }
+        bar.style.width=n+'%'; pct.textContent=Math.floor(n)+'%'; }, 200);
+    }
+  })();
+  </script>
+</body>
 </html>

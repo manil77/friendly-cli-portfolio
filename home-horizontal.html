@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Manil Maharjan — Software Engineer</title>
+<link href="https://api.fontshare.com/v2/css?f[]=sentient@400,401,500&f[]=general-sans@400,500,600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --paper:#1A1816; --paper-2:#231F1C; --ink:#EFE9DE; --dim:#9A8F80; --faint:#6E6457; --line:#332E28;
+    --accent:#E8862E; --ink-rgb:239,233,222; --accent-rgb:232,134,46;
+    --serif:"Sentient",Georgia,serif; --sans:"General Sans",system-ui,sans-serif; --mono:"Space Mono",monospace;
+    --ease:cubic-bezier(.16,1,.3,1);
+    --horizon:60vh;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+
+  /* ===== AWWWARDS LOADER ===== */
+  .loader{position:fixed;inset:0;z-index:9999;pointer-events:none;}
+  .loader.gone{display:none;}
+  .ld-panels{position:absolute;inset:0;display:flex;}
+  .ld-panels span{flex:1;height:100%;background:#0C0B0A;transform:translateY(0);
+    transition:transform 1s cubic-bezier(.76,0,.24,1);}
+  .loader.done .ld-panels span{transform:translateY(-100%);}
+  .loader.done .ld-panels span:nth-child(1){transition-delay:0s;}
+  .loader.done .ld-panels span:nth-child(2){transition-delay:.07s;}
+  .loader.done .ld-panels span:nth-child(3){transition-delay:.14s;}
+  .loader.done .ld-panels span:nth-child(4){transition-delay:.21s;}
+  .loader.done .ld-panels span:nth-child(5){transition-delay:.28s;}
+  .ld-content{position:absolute;inset:0;z-index:2;color:#ECE7DD;
+    padding:48px;display:flex;flex-direction:column;justify-content:space-between;transition:opacity .5s var(--ease);}
+  .loader.done .ld-content{opacity:0;}
+  .ld-top{color:#ECE7DD;opacity:.55;}
+  .ld-top .ld-sep{color:var(--accent);margin:0 6px;}
+  .ld-words{position:absolute;left:48px;top:50%;transform:translateY(-50%);height:clamp(48px,7.8vw,108px);overflow:hidden;}
+  .ld-word{display:block;white-space:nowrap;font-family:var(--serif);font-style:italic;font-weight:400;
+    font-size:clamp(40px,7vw,96px);line-height:1.1;letter-spacing:-.02em;color:#ECE7DD;
+    opacity:0;transform:translateY(100%);transition:transform .6s var(--ease),opacity .6s var(--ease);position:absolute;left:0;top:0;}
+  .ld-word.on{opacity:1;transform:translateY(0);}
+  .ld-word.out{opacity:0;transform:translateY(-100%);}
+  .ld-word::after{content:"";display:inline-block;width:.12em;height:.12em;border-radius:50%;background:var(--accent);
+    margin-left:.12em;vertical-align:baseline;box-shadow:0 0 14px var(--accent);}
+  .ld-count{align-self:flex-end;font-family:var(--serif);font-weight:400;font-size:clamp(60px,12vw,150px);
+    line-height:.9;letter-spacing:-.03em;color:#ECE7DD;}
+  .ld-count i{font-style:normal;font-size:.3em;color:var(--accent);vertical-align:super;margin-left:4px;}
+  .ld-line{position:absolute;left:48px;right:48px;bottom:42px;height:1px;background:rgba(236,231,221,.18);}
+  .ld-line i{display:block;height:100%;width:0;background:var(--accent);box-shadow:0 0 10px var(--accent);}
+  @media(max-width:600px){.ld-content{padding:24px;}.ld-words{left:24px;}.ld-line{left:24px;right:24px;}}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden;}
+  a{color:inherit;text-decoration:none;}
+  img{display:block;}
+  ::selection{background:var(--accent);color:var(--paper);}
+  .mono{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;}
+
+  @media(pointer:fine){ html.has-cursor, html.has-cursor *{cursor:none;} }
+  .cur{position:fixed;top:0;left:0;width:34px;height:34px;border:1px solid var(--ink);border-radius:50%;z-index:9000;pointer-events:none;
+    transition:width .3s var(--ease),height .3s var(--ease),background .3s var(--ease),border-color .3s var(--ease);}
+  .cur.on{width:60px;height:60px;background:color-mix(in srgb,var(--accent) 14%,transparent);border-color:var(--accent);}
+  @media(pointer:coarse){.cur{display:none;}}
+
+  .topo{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+
+  /* persistent horizon line — ties the whole landscape together */
+  .horizon{position:fixed;left:0;right:0;top:var(--horizon);height:1px;z-index:1;pointer-events:none;
+    background:linear-gradient(90deg,transparent,var(--line) 8%,var(--line) 92%,transparent);}
+  .horizon::after{content:"";position:absolute;left:0;top:0;height:1px;width:140px;background:var(--accent);opacity:.5;
+    animation:hz 6s var(--ease) infinite;}
+  @keyframes hz{0%{left:-140px;opacity:0;}20%{opacity:.5;}80%{opacity:.5;}100%{left:100%;opacity:0;}}
+  @media(prefers-reduced-motion:reduce){.horizon::after{display:none;}}
+
+  /* nav */
+  nav{position:fixed;top:0;left:0;right:0;z-index:100;}
+  nav .in{padding:26px 48px;display:flex;justify-content:space-between;align-items:center;}
+  nav .brand{font-family:var(--mono);font-size:13px;letter-spacing:.04em;}
+  nav .links{display:flex;gap:26px;}
+  nav .links a{font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--dim);transition:color .2s;}
+  nav .links a:hover{color:var(--accent);}
+  nav .links a.to-terminal{color:var(--accent);opacity:.85;}
+  nav .links a.to-terminal:hover{opacity:1;}
+
+  /* continuous horizontal landscape */
+  .scroller{position:relative;z-index:2;display:flex;height:100vh;overflow:hidden;}
+  .panel{flex:0 0 auto;height:100vh;position:relative;}
+  .panel .inner{position:absolute;inset:0;}
+
+  /* reveal */
+  .rv{opacity:0;transform:translateY(24px);transition:opacity 1s var(--ease),transform 1s var(--ease);}
+  .panel.seen .rv{opacity:1;transform:none;}
+  .panel.seen .rv.d1{transition-delay:.1s;} .panel.seen .rv.d2{transition-delay:.2s;} .panel.seen .rv.d3{transition-delay:.3s;}
+  .mask{display:block;overflow:hidden;}
+  .mask>span{display:block;transform:translateY(105%);transition:transform 1.1s var(--ease);}
+  .panel.seen .mask>span,.mask.in>span{transform:translateY(0);}
+  .intro{opacity:0;transform:translateY(16px);} .intro.in{opacity:1;transform:none;transition:opacity .9s var(--ease),transform .9s var(--ease);}
+  @media(prefers-reduced-motion:reduce){.rv,.intro{opacity:1;transform:none;}.mask>span{transform:none;}}
+
+  .tag{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);}
+  .tag .n{color:var(--accent);margin-right:10px;}
+
+  /* ===== OPENING ===== (oversized, content straddles horizon, not centered) */
+  .p-open{width:138vw;}
+  .p-open .eyebrow{position:absolute;left:7vw;top:19vh;display:flex;align-items:center;gap:14px;color:var(--accent);}
+  .p-open .eyebrow .ln{height:1px;width:46px;background:var(--accent);}
+  .p-open h1{position:absolute;left:7vw;top:22vh;font-family:var(--serif);font-weight:400;
+    font-size:clamp(40px,5.2vw,80px);line-height:1.0;letter-spacing:-.025em;}
+  .p-open h1 .mask>span{white-space:nowrap;}
+  .p-open h1 em{font-style:italic;color:var(--accent);}
+  .p-open .lead{position:absolute;left:7vw;top:calc(var(--horizon) + 7vh);max-width:42ch;font-size:17px;line-height:1.6;color:var(--dim);}
+  .p-open .lead b{color:var(--ink);font-weight:500;}
+  .p-open .status{position:absolute;left:7vw;top:calc(var(--horizon) + 20vh);display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:12px;letter-spacing:.06em;}
+  .p-open .status .d{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent);}
+  .p-open .photo{position:absolute;left:64vw;top:22vh;width:clamp(240px,23vw,310px);}
+  .p-open .photo .frame{position:relative;aspect-ratio:4/5;border-radius:10px;overflow:hidden;box-shadow:0 30px 60px rgba(26,23,20,.16);border:1px solid var(--line);}
+  .p-open .photo .frame img{width:100%;height:100%;object-fit:cover;filter:contrast(1.03);}
+  .p-open .photo .cap{position:absolute;left:14px;bottom:14px;background:var(--paper);padding:6px 12px;border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;}
+
+  /* ===== ABOUT ===== (quote high, columns low — staggered) */
+  .p-about{width:88vw;}
+  .p-about .tag{position:absolute;left:6vw;top:18vh;}
+  .p-about .big{position:absolute;left:6vw;top:24vh;max-width:24ch;font-family:var(--serif);font-weight:400;
+    font-size:clamp(26px,3.3vw,46px);line-height:1.3;letter-spacing:-.015em;}
+  .p-about .big em{font-style:italic;color:var(--accent);}
+  .p-about .cols{position:absolute;left:6vw;top:calc(var(--horizon) + 9vh);display:flex;gap:48px;max-width:760px;}
+  .p-about .cols p{flex:1;font-size:15.5px;line-height:1.7;color:var(--dim);}
+  .p-about .cols p b{color:var(--ink);font-weight:500;}
+
+  /* ===== HISTORY ===== (editorial "chapters" — full-height columns) */
+  .p-history{width:1300px;}
+  .p-history .tag{position:absolute;left:60px;top:13vh;z-index:3;}
+  .chapters{position:absolute;left:60px;right:60px;top:21vh;bottom:13vh;display:flex;}
+  .chapter{position:relative;width:380px;padding:0 44px;display:flex;flex-direction:column;}
+  .chapter + .chapter{border-left:1px solid var(--line);}
+  /* giant ghost year anchors the column */
+  .chapter .ghost{position:absolute;top:-4px;right:34px;font-family:var(--serif);font-style:italic;
+    font-size:150px;line-height:1;color:var(--accent);opacity:.10;pointer-events:none;user-select:none;}
+  .chapter .now .ghost,.chapter.is-now .ghost{opacity:.16;}
+  .chapter .chno{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);}
+  .chapter .yr{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.05em;margin-top:54px;}
+  .chapter .role{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.04;letter-spacing:-.015em;margin-top:10px;}
+  .chapter .co{font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:8px;text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:8px;}
+  .chapter .co .badge{color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);border-radius:999px;padding:2px 8px;font-size:10px;}
+  .chapter .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 20%,transparent);}
+  .chapter p{font-size:14px;line-height:1.65;color:var(--dim);margin-top:18px;}
+  .chapter .stack{font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-top:auto;padding-top:18px;letter-spacing:.05em;text-transform:uppercase;line-height:1.7;}
+
+  /* ===== WORK ===== (cards at staggered heights, not a neat row) */
+  .p-work{width:1240px;}
+  .p-work .tag{position:absolute;left:60px;top:14vh;}
+  .wcard{position:absolute;width:300px;display:flex;flex-direction:column;background:var(--paper-2);border:1px solid var(--line);
+    border-radius:12px;padding:24px;min-height:330px;transition:transform .3s var(--ease),background .3s;overflow:hidden;}
+  .wcard:hover{transform:translateY(-6px);background:#fff;}
+  .wcard .idx{font-family:var(--mono);font-size:12px;color:var(--accent);}
+  .wcard .cat{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-top:auto;}
+  .wcard .name{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1;margin:8px 0 12px;letter-spacing:-.01em;}
+  .wcard p{font-size:13px;line-height:1.55;color:var(--dim);}
+  .wcard .logo{align-self:flex-start;background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:8px;padding:9px 13px;margin-top:14px;display:inline-flex;align-items:center;}
+  .wcard .logo img{height:22px;max-width:130px;mix-blend-mode:multiply;display:block;}
+  .wcard .go{position:absolute;top:22px;right:22px;color:var(--faint);transition:.25s;}
+  .wcard:hover .go{color:var(--accent);transform:translate(3px,-3px);}
+  .p-work .w1{left:60px;top:18vh;} .p-work .w2{left:420px;top:34vh;} .p-work .w3{left:780px;top:22vh;}
+
+  /* ===== CONTACT ===== */
+  .p-contact{width:84vw;}
+  .p-contact .tag{position:absolute;left:7vw;top:20vh;}
+  .p-contact .skills{position:absolute;left:7vw;top:25vh;}
+  .p-contact .chips{display:flex;flex-wrap:wrap;gap:9px;max-width:560px;margin-top:12px;}
+  .p-contact .chip{font-family:var(--mono);font-size:12px;padding:7px 13px;border:1px solid var(--line);border-radius:999px;color:var(--dim);transition:.15s;}
+  .p-contact .chip:hover{border-color:var(--accent);color:var(--accent);}
+  .p-contact h2{position:absolute;left:7vw;top:calc(var(--horizon) - 6vh);font-family:var(--serif);font-weight:400;
+    font-size:clamp(52px,8vw,118px);line-height:1;letter-spacing:-.025em;}
+  .p-contact h2 em{font-style:italic;color:var(--accent);}
+  .p-contact .email{position:absolute;left:7vw;top:calc(var(--horizon) + 12vh);font-family:var(--serif);font-style:italic;
+    font-size:clamp(20px,2.6vw,30px);border-bottom:1px solid var(--accent);padding-bottom:4px;}
+  .p-contact .email:hover{color:var(--accent);}
+  .p-contact .endmeta{position:absolute;left:7vw;top:calc(var(--horizon) + 24vh);display:flex;gap:28px;align-items:center;flex-wrap:wrap;
+    font-family:var(--mono);font-size:12px;color:var(--faint);letter-spacing:.04em;}
+  .p-contact .endmeta a:hover{color:var(--accent);}
+  .np{display:inline-flex;align-items:center;gap:8px;}
+
+  /* end spacer so contact isn't flush to edge */
+  .endpad{flex:0 0 7vw;}
+
+  /* chrome — thin progress only, no slideshow dots/counter */
+  .progress{position:fixed;left:48px;right:48px;bottom:30px;height:1px;background:var(--line);z-index:90;}
+  .progress .fill{height:100%;background:var(--accent);transform-origin:left;transform:scaleX(0);}
+  .nowlabel{position:fixed;left:48px;bottom:40px;z-index:91;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);}
+  .nowlabel b{color:var(--ink);font-weight:400;}
+  .hint{position:fixed;right:48px;bottom:38px;z-index:91;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);display:flex;align-items:center;gap:8px;}
+
+  .hoverimg{position:fixed;top:0;left:0;z-index:80;width:300px;height:210px;border-radius:8px;overflow:hidden;pointer-events:none;
+    opacity:0;transform:translate(-50%,-50%) scale(.9);transition:opacity .4s var(--ease),transform .5s var(--ease);box-shadow:0 30px 70px rgba(26,23,20,.22);}
+  .hoverimg.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+  .hoverimg .hi-inner{position:absolute;inset:0;background:#fff;display:grid;place-items:center;}
+  .hoverimg .hi-inner img{max-width:64%;max-height:60%;mix-blend-mode:multiply;}
+  @media(pointer:coarse){.hoverimg{display:none;}}
+</style>
+</head>
+<body>
+  <!-- AWWWARDS LOADER (plays on entry from terminal: ?intro=1) -->
+  <div class="loader" id="loader" aria-hidden="true">
+    <div class="ld-panels"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="ld-content">
+      <div class="ld-top mono">MANIL MAHARJAN <span class="ld-sep">/</span> MODERN PORTFOLIO</div>
+      <div class="ld-words">
+        <span class="ld-word" data-at="0">calm.</span>
+        <span class="ld-word" data-at="40">considered.</span>
+        <span class="ld-word" data-at="75">crafted.</span>
+      </div>
+      <div class="ld-count"><span id="ldCount">0</span><i>%</i></div>
+      <div class="ld-line"><i id="ldBar"></i></div>
+    </div>
+  </div>
+
+  <canvas class="topo" aria-hidden="true"></canvas>
+  <div class="horizon"></div>
+
+  <nav>
+    <div class="in">
+      <div class="brand">MANIL.MAHARJAN</div>
+      <div class="links">
+        <a href="#" data-to="p-work">work</a>
+        <a href="#" data-to="p-history">history</a>
+        <a href="#" data-to="p-about">about</a>
+        <a href="#" data-to="p-contact">contact</a>
+        <a href="index.html" class="to-terminal">← terminal</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="scroller">
+    <!-- OPENING -->
+    <section class="panel p-open" id="p-open" data-name="Index">
+      <div class="inner">
+        <div class="eyebrow intro"><span class="ln"></span><span class="mono">Software Engineer · Nepal</span></div>
+        <h1>
+          <span class="mask"><span>Calm, considered</span></span>
+          <span class="mask"><span>web apps, built</span></span>
+          <span class="mask"><span>with <em>care.</em></span></span>
+        </h1>
+        <p class="lead intro" data-d="500">I'm <b>Manil Maharjan</b> — three years building full-stack web apps with <b>.NET</b>, <b>NestJS</b> &amp; <b>PostgreSQL</b>, obsessed with the details that make software feel effortless.</p>
+        <span class="status intro" data-d="600"><span class="d"></span> Available for work</span>
+        <div class="photo intro" data-d="400">
+          <div class="frame"><img src="assets/avatar.jpg" alt="Manil Maharjan"/><span class="cap">NEPAL · 2026</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="panel p-about" id="p-about" data-name="About">
+      <div class="inner">
+        <div class="tag rv"><span class="n">01</span>About</div>
+        <p class="big rv d1">Happiest between the database and the interface — shaping clean APIs on one side, <em>obsessing</em> over the experience on the other.</p>
+        <div class="cols">
+          <p class="rv d2">I've worked across demanding domains — cross-border <b>fintech</b>, <b>real estate</b>, and <b>NGO / social-impact</b> tooling — which taught me to treat accuracy, compliance and real workflows as the design, not afterthoughts.</p>
+          <p class="rv d3">Right now I'm a <b>.NET Developer at Inficare</b>, re-platforming a remittance system to .NET 8. Outside of code, you'll find me sketching ideas or gaming with friends. Based in <b>Nepal</b>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- HISTORY -->
+    <section class="panel p-history" id="p-history" data-name="History">
+      <div class="inner">
+        <div class="tag rv"><span class="n">02</span>History · 2022 — Now</div>
+        <div class="chapters">
+          <div class="chapter rv">
+            <span class="ghost">’22</span>
+            <span class="chno">Chapter 01</span>
+            <span class="yr">APR 2022 — FEB 2024</span>
+            <div class="role">.NET Developer</div>
+            <div class="co">Team Next I.C.T Solutions</div>
+            <p>Lead developer for Heifer Cambodia's PMER system — built, maintained and demoed it. Mentored juniors and contributed to Heifer Nepal's backend team.</p>
+            <div class="stack">ASP.NET MVC · PostgreSQL<br/>Entity Framework · React</div>
+          </div>
+          <div class="chapter is-now rv d1">
+            <span class="ghost">’24</span>
+            <span class="chno">Chapter 02</span>
+            <span class="yr">FEB 2024 — NOW</span>
+            <div class="role">.NET Developer</div>
+            <div class="co"><span class="dot"></span><span class="badge">Current</span> Inficare</div>
+            <p>Integrated partner Send/Pull APIs and led the upgrade from .NET Framework 4.7.2 to .NET 8 with Clean Architecture and the Repository + Unit of Work patterns.</p>
+            <div class="stack">ASP.NET 4.7 / 6 / 8 · SQL Server<br/>Dapper · Azure DevOps · IIS</div>
+          </div>
+          <div class="chapter rv d2">
+            <span class="ghost">’25</span>
+            <span class="chno">Chapter 03</span>
+            <span class="yr">JAN — AUG 2025</span>
+            <div class="role">NestJS Developer</div>
+            <div class="co"><span class="badge">Freelance</span> HUKU</div>
+            <p>Built a full real-estate platform end to end: listings, property uploads, galleries, auth, visit scheduling and agent dashboards.</p>
+            <div class="stack">NestJS · Nunjucks<br/>TypeORM · SQLite</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WORK -->
+    <section class="panel p-work" id="p-work" data-name="Work">
+      <div class="inner">
+        <div class="tag rv"><span class="n">03</span>Selected work</div>
+        <a class="wcard w1 rv" href="#" data-img="assets/remitx.png" data-cursor>
+          <span class="go">↗</span><span class="idx">01</span>
+          <div class="cat">Fintech · .NET</div>
+          <div class="name">RemitX</div>
+          <p>A white-label remittance platform banks use to move money across borders — I led the .NET 8 migration and built posting that reconciles to the cent.</p>
+          <div class="logo"><img src="assets/remitx.png" alt="RemitX"/></div>
+        </a>
+        <a class="wcard w2 rv d1" href="#" data-img="assets/huku.png" data-cursor>
+          <span class="go">↗</span><span class="idx">02</span>
+          <div class="cat">Real estate · NestJS</div>
+          <div class="name">HUKU</div>
+          <p>A real-estate platform I built end to end — listings, galleries, auth, visit scheduling and agent dashboards.</p>
+          <div class="logo"><img src="assets/huku.png" alt="HUKU"/></div>
+        </a>
+        <a class="wcard w3 rv d2" href="#" data-img="assets/heifer.png" data-cursor>
+          <span class="go">↗</span><span class="idx">03</span>
+          <div class="cat">NGO · .NET</div>
+          <div class="name">Heifer PMIS</div>
+          <p>Project &amp; budget tracking for NGO programs, with a PMER reporting system used across country offices.</p>
+          <div class="logo"><img src="assets/heifer.png" alt="Heifer PMIS"/></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="panel p-contact" id="p-contact" data-name="Contact">
+      <div class="inner">
+        <div class="tag rv"><span class="n">04</span>What I work with</div>
+        <div class="skills rv d1">
+          <div class="chips">
+            <span class="chip">.NET</span><span class="chip">NestJS</span><span class="chip">PostgreSQL</span><span class="chip">SQL Server</span>
+            <span class="chip">TypeScript</span><span class="chip">Entity Framework</span><span class="chip">Dapper</span><span class="chip">Azure DevOps</span>
+          </div>
+        </div>
+        <h2 class="rv d2">Say <em>hello.</em></h2>
+        <a class="email rv d3" data-mag="0.3" href="mailto:manil.maharjan07@gmail.com">manil.maharjan07@gmail.com</a>
+        <div class="endmeta rv d3">
+          <span class="np"><svg viewBox="0 0 50 62" width="14" height="17" aria-hidden="true" style="display:block"><path d="M4,3 L42,25 L21,25 L42,46 L4,58 Z" fill="#DC143C" stroke="#003893" stroke-width="3" stroke-linejoin="round"/><circle cx="15" cy="15" r="4.4" fill="#fff"/><path d="M15,11.2 a4.4,4.4 0 1,0 0,7.6 a3.4,3.4 0 1,1 0,-7.6 Z" fill="#DC143C"/><circle cx="17" cy="40" r="4" fill="#fff"/></svg> NEPAL · UTC+5:45</span>
+          <a href="https://www.linkedin.com/in/iammanil" target="_blank" rel="noreferrer">LINKEDIN ↗</a>
+          <span>© 2026 MANIL MAHARJAN</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="endpad"></div>
+  </div>
+
+  <!-- chrome -->
+  <div class="nowlabel"><b id="now">Index</b> — Manil Maharjan</div>
+  <div class="progress"><div class="fill"></div></div>
+  <div class="hint">scroll →</div>
+
+  <!-- PALETTE SWITCHER (exploration tool) -->
+  <div class="palette" id="palette">
+    <button class="pal-toggle" id="palToggle" aria-label="Change colors">
+      <span class="pal-ring"></span> colors
+    </button>
+    <div class="pal-tray" id="palTray"></div>
+  </div>
+  <style>
+    .palette{position:fixed;right:24px;top:84px;z-index:120;display:flex;flex-direction:column;align-items:flex-end;gap:12px;}
+    .pal-toggle{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+      text-transform:uppercase;color:var(--ink);background:color-mix(in srgb,var(--paper) 80%,transparent);
+      backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:999px;padding:9px 15px;cursor:pointer;transition:.2s var(--ease);}
+    .pal-toggle:hover{border-color:var(--accent);}
+    .pal-ring{width:11px;height:11px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent);}
+    .pal-tray{display:none;flex-direction:column;gap:7px;background:color-mix(in srgb,var(--paper) 88%,transparent);
+      backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:14px;padding:10px;width:228px;box-shadow:0 20px 50px rgba(26,23,20,.16);}
+    .palette.open .pal-tray{display:flex;}
+    .pal-opt{display:flex;align-items:center;gap:11px;border:1px solid transparent;border-radius:9px;padding:8px 9px;cursor:pointer;transition:.16s;background:transparent;width:100%;text-align:left;}
+    .pal-opt:hover{background:color-mix(in srgb,var(--ink) 6%,transparent);}
+    .pal-opt.on{border-color:var(--accent);}
+    .pal-sw{display:flex;flex-shrink:0;border-radius:6px;overflow:hidden;border:1px solid rgba(0,0,0,.08);}
+    .pal-sw span{width:16px;height:26px;display:block;}
+    .pal-opt .pal-name{font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--ink);text-transform:uppercase;}
+    .pal-opt .pal-name small{display:block;color:var(--dim);font-size:9.5px;letter-spacing:.04em;margin-top:2px;text-transform:none;}
+    @media(pointer:coarse){.palette{top:auto;bottom:78px;right:16px;}}
+  </style>
+
+  <script>
+  (function(){
+    var loader = document.getElementById('loader');
+    var hasIntro = /[?&]intro=1/.test(location.search);
+    var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!loader) return;
+    if (!hasIntro){ loader.classList.add('gone'); return; }
+    // lock scroll while loading
+    document.documentElement.style.overflow = 'hidden';
+    var countEl = document.getElementById('ldCount'), bar = document.getElementById('ldBar');
+    var words = [].slice.call(loader.querySelectorAll('.ld-word'));
+    var curWord = -1;
+    function showWord(i){
+      if (i===curWord) return;
+      words.forEach(function(w,wi){ w.classList.remove('on'); if(wi<i) w.classList.add('out'); });
+      if (words[i]){ words[i].classList.remove('out'); words[i].classList.add('on'); }
+      curWord = i;
+    }
+    showWord(0);
+    function finish(){
+      loader.classList.add('done');
+      document.documentElement.style.overflow = '';
+      // clean the url so reload doesn't replay
+      try{ history.replaceState(null,'', location.pathname); }catch(e){}
+      setTimeout(function(){ loader.classList.add('gone'); }, 1400);
+    }
+    if (reduce){ countEl.textContent='100'; bar.style.width='100%'; setTimeout(finish, 300); return; }
+    var n = 0, start = performance.now(), DUR = 2200;
+    function ease(t){ return 1 - Math.pow(1-t, 3); }
+    (function tick(now){
+      var t = Math.min(1, (now-start)/DUR);
+      n = Math.floor(ease(t)*100);
+      countEl.textContent = n; bar.style.width = (ease(t)*100)+'%';
+      // word by threshold
+      var wi = 0;
+      for (var i=0;i<words.length;i++){ if (n >= +words[i].getAttribute('data-at')) wi = i; }
+      showWord(wi);
+      if (t < 1) requestAnimationFrame(tick); else setTimeout(finish, 260);
+    })(start);
+  })();
+  </script>
+  <script src="horizontal.js"></script>
+  <script>
+  (function(){
+    var PALETTES = [
+      { id:'sand',    name:'Sand',    sub:'warm cream · terracotta', paper:'#F4F1EA', paper2:'#ECE8DF', ink:'#1A1714', dim:'#8B8273', faint:'#B4AB9B', line:'#E0DACE', accent:'#D2502A', inkrgb:'26,23,20', accrgb:'210,80,42' },
+      { id:'frost',   name:'Frost',   sub:'cool grey · cobalt',      paper:'#EEF0F2', paper2:'#E4E7EB', ink:'#15181C', dim:'#727A85', faint:'#A2AAB5', line:'#D7DCE2', accent:'#2C57E0', inkrgb:'21,24,28', accrgb:'44,87,224' },
+      { id:'mono',    name:'Mono',    sub:'greyscale · ink',         paper:'#EDEDEA', paper2:'#E3E3DF', ink:'#141413', dim:'#76746E', faint:'#A8A6A0', line:'#D8D7D2', accent:'#141413', inkrgb:'20,20,19', accrgb:'20,20,19' },
+      { id:'forest',  name:'Forest',  sub:'bone · deep pine',        paper:'#EFefe7', paper2:'#E5E6DD', ink:'#16201A', dim:'#6E7A72', faint:'#A3ADA6', line:'#D9DDD3', accent:'#1E6B4E', inkrgb:'22,32,26', accrgb:'30,107,78' },
+      { id:'plum',    name:'Plum',    sub:'lilac grey · violet',     paper:'#EEEAF0', paper2:'#E5DFEA', ink:'#1C1722', dim:'#7A7286', faint:'#ACA4B6', line:'#DED7E4', accent:'#6A40C4', inkrgb:'28,23,34', accrgb:'106,64,196' },
+      { id:'noir',    name:'Noir',    sub:'charcoal · amber',        paper:'#1A1816', paper2:'#231F1C', ink:'#EFE9DE', dim:'#9A8F80', faint:'#6E6457', line:'#332E28', accent:'#E8862E', inkrgb:'239,233,222', accrgb:'232,134,46' },
+      { id:'tide',    name:'Tide',    sub:'pale mist · teal',        paper:'#EAF0EF', paper2:'#E0E8E7', ink:'#13201F', dim:'#6B7A78', faint:'#9FADAB', line:'#D4DEDC', accent:'#11857A', inkrgb:'19,32,31', accrgb:'17,133,122' }
+    ];
+    var root = document.documentElement, KEY = 'studio_palette';
+    function apply(p){
+      root.style.setProperty('--paper',p.paper); root.style.setProperty('--paper-2',p.paper2);
+      root.style.setProperty('--ink',p.ink); root.style.setProperty('--dim',p.dim);
+      root.style.setProperty('--faint',p.faint); root.style.setProperty('--line',p.line);
+      root.style.setProperty('--accent',p.accent);
+      root.style.setProperty('--ink-rgb',p.inkrgb); root.style.setProperty('--accent-rgb',p.accrgb);
+      try{ localStorage.setItem(KEY,p.id); }catch(e){}
+      window.dispatchEvent(new Event('palettechange'));
+      [].forEach.call(document.querySelectorAll('.pal-opt'), function(o){ o.classList.toggle('on', o.getAttribute('data-id')===p.id); });
+    }
+    var tray = document.getElementById('palTray');
+    PALETTES.forEach(function(p){
+      var b = document.createElement('button'); b.className='pal-opt'; b.setAttribute('data-id',p.id);
+      b.innerHTML = '<span class="pal-sw"><span style="background:'+p.paper+'"></span><span style="background:'+p.accent+'"></span><span style="background:'+p.ink+'"></span></span>'+
+                    '<span class="pal-name">'+p.name+'<small>'+p.sub+'</small></span>';
+      b.addEventListener('click', function(){ apply(p); });
+      tray.appendChild(b);
+    });
+    document.getElementById('palToggle').addEventListener('click', function(){ document.getElementById('palette').classList.toggle('open'); });
+    // restore saved choice
+    var saved; try{ saved = localStorage.getItem(KEY); }catch(e){}
+    var start = PALETTES.filter(function(p){return p.id===saved;})[0];
+    if (!start) start = PALETTES.filter(function(p){return p.id==='noir';})[0];
+    apply(start);
+  })();
+  </script>
+</body>
+</html>
