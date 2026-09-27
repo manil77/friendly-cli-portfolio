@@ -2,7 +2,7 @@
 import { randomBytes } from 'node:crypto';
 import { db } from '../lib/db.js';
 import { json, readJson, str, ID_RE, SLUG_RE } from '../lib/http.js';
-import { checkPassword, sessionCookie, clearCookie, isAdmin, cleanText } from '../lib/services.js';
+import { checkPassword, sessionCookie, clearCookie, isAdmin, cleanText, sendAlert, siteUrl } from '../lib/services.js';
 import { getContent, saveContent } from '../lib/content.js';
 
 const DAYS = (u) => Math.min(365, Math.max(1, parseInt(u.searchParams.get('days')) || 30));
@@ -33,8 +33,26 @@ const GET_ACTIONS = {
       SELECT name AS k, value AS status, count(*)::int AS n FROM events
       WHERE ts > ${since} AND type = 'command' AND name IS NOT NULL GROUP BY 1, 2 ORDER BY 3 DESC LIMIT 15`;
     const map = await sql`SELECT lat, lon, city, country, org, score FROM visitors WHERE lat IS NOT NULL AND last_seen > ${since} LIMIT 500`;
+    const geo = await sql`SELECT country AS k, count(*)::int AS n FROM events
+                          WHERE ts > ${since} AND type = 'pageview' AND country IS NOT NULL GROUP BY 1`;
+    const prevSince = new Date(Date.now() - 2 * d * 864e5).toISOString();
+    const [prev] = await sql`
+      SELECT count(*) FILTER (WHERE type = 'pageview')::int AS pageviews,
+             count(DISTINCT COALESCE(visitor_id, anon_id)) FILTER (WHERE type = 'pageview')::int AS uniques,
+             count(DISTINCT visitor_id)::int AS identified
+      FROM events WHERE ts > ${prevSince} AND ts <= ${since}`;
+    const [prevLeads] = await sql`SELECT count(*)::int AS n FROM leads WHERE ts > ${prevSince} AND ts <= ${since}`;
+    const [funnel] = await sql`SELECT count(*) FILTER (WHERE score >= 10)::int AS engaged, count(*) FILTER (WHERE score >= 25)::int AS hot
+                               FROM visitors WHERE last_seen > ${since}`;
+    const companies = await sql`
+      SELECT org AS k, max(org_domain) AS domain, count(*)::int AS n, max(score)::int AS score FROM visitors
+      WHERE last_seen > ${since} AND org IS NOT NULL AND org_is_isp = false GROUP BY 1 ORDER BY 3 DESC, 4 DESC LIMIT 8`;
+    const recent = await sql`
+      SELECT e.ts, e.type, e.path, e.name, e.value, e.consent, e.country, e.visitor_id, v.org, v.org_is_isp, v.city
+      FROM events e LEFT JOIN visitors v ON v.id = e.visitor_id WHERE e.type <> 'engage' ORDER BY e.ts DESC LIMIT 30`;
     return {
-      days: d, totals: { ...totals, leads: leads.n }, daily, commands, map,
+      days: d, totals: { ...totals, leads: leads.n }, previous: { ...prev, leads: prevLeads.n }, funnel, companies, recent,
+      daily, commands, map, geo,
       countries: await top('country', 'pageview'), referrers: await top('ref_host', 'pageview'),
       pages: await top('path', 'pageview'), devices: await top('device', 'pageview'),
       themes: await top('name', 'theme'), clicks: await top('name', 'click', 10),
@@ -44,7 +62,39 @@ const GET_ACTIONS = {
 
   async visitors(sql) {
     return sql`SELECT v.*, l.label AS link_label, (SELECT count(*)::int FROM leads WHERE visitor_id = v.id) AS leads
-               FROM visitors v LEFT JOIN links l ON l.slug = v.link_slug ORDER BY v.score DESC, v.last_seen DESC LIMIT 200`;
+               FROM visitors v LEFT JOIN links l ON l.slug = v.link_slug ORDER BY v.starred DESC, v.score DESC, v.last_seen DESC LIMIT 500`;
+  },
+
+  async live(sql) {
+    const [a] = await sql`SELECT count(DISTINCT COALESCE(visitor_id, anon_id))::int AS n FROM events WHERE ts > now() - interval '5 minutes'`;
+    const visitors = await sql`
+      SELECT DISTINCT ON (v.id) v.id, v.org, v.org_is_isp, v.city, v.country, v.score, e.path, e.ts
+      FROM events e JOIN visitors v ON v.id = e.visitor_id
+      WHERE e.ts > now() - interval '5 minutes' ORDER BY v.id, e.ts DESC`;
+    const [l] = await sql`SELECT count(*)::int AS n FROM leads WHERE status = 'new'`;
+    return { count: a.n, visitors, newLeads: l.n };
+  },
+
+  async system(sql) {
+    const has = (k) => !!process.env[k];
+    const [c] = await sql`SELECT (SELECT count(*) FROM events)::int AS events, (SELECT count(*) FROM visitors)::int AS visitors,
+                                 (SELECT count(*) FROM leads)::int AS leads, (SELECT count(*) FROM links)::int AS links,
+                                 (SELECT min(ts) FROM events) AS since`;
+    const neon = has('DATABASE_URL') || has('POSTGRES_URL');
+    const to = process.env.ALERT_EMAIL_TO;
+    return {
+      env: process.env.VERCEL_ENV || 'development', region: process.env.VERCEL_REGION || 'local', counts: c,
+      checks: [
+        { label: 'Database', ok: neon, required: true, env: 'DATABASE_URL', detail: neon ? 'Neon Postgres' : 'Embedded dev database; data stays on this machine' },
+        { label: 'Admin password', ok: has('ADMIN_PASSWORD'), required: true, env: 'ADMIN_PASSWORD' },
+        { label: 'Session secret', ok: has('ADMIN_SECRET'), required: true, env: 'ADMIN_SECRET', detail: 'Signs admin logins' },
+        { label: 'Site URL', ok: has('SITE_URL'), required: true, env: 'SITE_URL', detail: process.env.SITE_URL || 'Used in tracked links and alert emails' },
+        { label: 'Image & résumé uploads', ok: has('BLOB_READ_WRITE_TOKEN'), env: 'BLOB_READ_WRITE_TOKEN', detail: has('BLOB_READ_WRITE_TOKEN') ? 'Vercel Blob' : 'Local folder (dev only)' },
+        { label: 'Company lookup', ok: has('IPINFO_TOKEN'), env: 'IPINFO_TOKEN', detail: 'ipinfo.io Lite' },
+        { label: 'Email alerts', ok: has('RESEND_API_KEY') && !!to, env: 'RESEND_API_KEY, ALERT_EMAIL_TO', detail: to ? 'Sends to ' + to : 'Resend' },
+        { label: 'Cleanup job protection', ok: has('CRON_SECRET'), env: 'CRON_SECRET', detail: 'Daily data-retention job' },
+      ],
+    };
   },
 
   async visitor(sql, u) {
@@ -62,7 +112,8 @@ const GET_ACTIONS = {
   },
 
   async links(sql) {
-    return sql`SELECT k.*, (SELECT count(*)::int FROM visitors v WHERE v.link_slug = k.slug) AS visitors
+    return sql`SELECT k.*, (SELECT count(*)::int FROM visitors v WHERE v.link_slug = k.slug) AS visitors,
+                      (SELECT count(*)::int FROM leads l JOIN visitors v ON v.id = l.visitor_id WHERE v.link_slug = k.slug) AS leads
                FROM links k ORDER BY k.created_at DESC`;
   },
 
@@ -70,10 +121,25 @@ const GET_ACTIONS = {
 };
 
 const POST_ACTIONS = {
-  async 'lead-status'(sql, b) {
-    const status = ['new', 'contacted', 'won', 'lost'].includes(b.status) ? b.status : 'new';
-    await sql`UPDATE leads SET status = ${status} WHERE id = ${+b.id}`;
+  async 'lead-update'(sql, b) {
+    if ('status' in b) {
+      const status = ['new', 'contacted', 'won', 'lost'].includes(b.status) ? b.status : 'new';
+      await sql`UPDATE leads SET status = ${status} WHERE id = ${+b.id}`;
+    }
+    if ('note' in b) await sql`UPDATE leads SET note = ${cleanText(b.note, 2000) || null} WHERE id = ${+b.id}`;
     return { ok: true };
+  },
+
+  async 'visitor-update'(sql, b) {
+    if (!ID_RE.test(b.id || '')) return { error: 'bad id' };
+    if ('starred' in b) await sql`UPDATE visitors SET starred = ${!!b.starred} WHERE id = ${b.id}`;
+    if ('note' in b) await sql`UPDATE visitors SET note = ${cleanText(b.note, 2000) || null} WHERE id = ${b.id}`;
+    return { ok: true };
+  },
+
+  async 'test-alert'() {
+    const sent = await sendAlert('Test alert from your portfolio', [['Sent at', new Date().toUTCString()], ['Dashboard', siteUrl() + '/admin']]);
+    return sent ? { ok: true } : { error: 'Not sent. Check RESEND_API_KEY, ALERT_EMAIL_TO and the sender domain in Resend.' };
   },
   async 'lead-delete'(sql, b) { await sql`DELETE FROM leads WHERE id = ${+b.id}`; return { ok: true }; },
 
