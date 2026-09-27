@@ -110,6 +110,9 @@
 
     function maxScroll(){ return scroller.scrollWidth - scroller.clientWidth; }
 
+    // center a panel, or align its left edge when it's wider than the screen
+    function panelX(pn){ return pn.offsetWidth > scroller.clientWidth ? pn.offsetLeft : pn.offsetLeft - (scroller.clientWidth - pn.offsetWidth)/2; }
+
     function goTo(px){ px = clamp(px,0,maxScroll());
       if (scroller._goTo) scroller._goTo(px); else scroller.scrollTo({left:px, behavior:'smooth'}); }
 
@@ -119,7 +122,7 @@
       panels.forEach(function(pn,i){
         var b = document.createElement('button'); b.className='dot';
         b.setAttribute('aria-label', pn.getAttribute('data-name')||('Panel '+(i+1)));
-        b.addEventListener('click', function(){ goTo(pn.offsetLeft - (scroller.clientWidth - pn.offsetWidth)/2); });
+        b.addEventListener('click', function(){ goTo(panelX(pn)); });
         nav.appendChild(b); dots.push(b);
       });
     }
@@ -162,7 +165,7 @@
     document.querySelectorAll('[data-to]').forEach(function(a){
       a.addEventListener('click', function(e){ e.preventDefault();
         var pn = document.getElementById(a.getAttribute('data-to')); if(!pn) return;
-        goTo(pn.offsetLeft - (scroller.clientWidth-pn.offsetWidth)/2);
+        goTo(panelX(pn));
       });
     });
     setTimeout(updateUI, 60);
