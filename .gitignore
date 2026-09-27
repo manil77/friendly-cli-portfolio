@@ -5,3 +5,13 @@
 .claude/
 .vscode/
 .idea/
+
+# Node / Vercel
+node_modules/
+.vercel/
+.env*.local
+.env
+
+# Local dev database + uploads
+.data/
+public/uploads/

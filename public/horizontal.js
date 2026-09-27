@@ -25,16 +25,16 @@
   /* ---- work hover image ---- */
   function hoverImg() {
     if (!fine) return;
-    var rows = document.querySelectorAll('[data-img]'); if(!rows.length) return;
     var box = document.createElement('div'); box.className='hoverimg';
     box.innerHTML = '<div class="hi-inner"><img alt=""></div>';
     document.body.appendChild(box);
     var img = box.querySelector('img');
     var tx=0,ty=0,cx=0,cy=0,on=false;
-    rows.forEach(function(row){
-      row.addEventListener('mouseenter', function(){ img.src=row.getAttribute('data-img'); box.classList.add('show'); on=true; });
-      row.addEventListener('mouseleave', function(){ box.classList.remove('show'); on=false; });
-    });
+    // delegated so cards re-rendered from the CMS keep working
+    document.addEventListener('mouseover', function(e){ var row=e.target.closest('[data-img]');
+      if(row){ img.src=row.getAttribute('data-img'); box.classList.add('show'); on=true; } });
+    document.addEventListener('mouseout', function(e){ var row=e.target.closest('[data-img]');
+      if(row && !(e.relatedTarget && row.contains(e.relatedTarget))){ box.classList.remove('show'); on=false; } });
     addEventListener('mousemove', function(e){ tx=e.clientX; ty=e.clientY; });
     (function loop(){ cx=lerp(cx,tx,.1); cy=lerp(cy,ty,.1);
       if(on) box.style.transform='translate('+cx+'px,'+cy+'px) translate(-50%,-50%)'; requestAnimationFrame(loop); })();

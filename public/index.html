@@ -13,6 +13,7 @@
     --glow:0 0 6px #00ff0088, 0 0 12px #00ff00aa;
     --glow-soft:0 0 4px #00ff8866, 0 0 10px #00ff8844;
     --glow-cyan:0 0 6px #00ffff88, 0 0 14px #00ffff66;
+    --mmc-bg:#020c06; --mmc-fg:#00ff88; --mmc-line:#1d4a30; --mmc-accent:#00ffff; --mmc-font:"Fira Code",ui-monospace,monospace; --mmc-radius:6px;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   html,body{height:100%;}
@@ -53,6 +54,8 @@
   .resp{color:var(--green);text-shadow:var(--glow-soft);}
   .resp .em{color:#ccffe0;font-weight:500;}
   .resp .muted{color:var(--dim);}
+  .resp b{color:#ccffe0;font-weight:500;} .resp i{color:var(--dim);}
+  .greet{color:var(--amber);text-shadow:0 0 8px #ff770066;}
   .err{color:var(--error);text-shadow:0 0 6px #ff000088;}
 
   .banner{color:var(--green);text-shadow:var(--glow-soft);font-size:12px;line-height:1.15;margin-bottom:14px;white-space:pre;}
@@ -124,9 +127,13 @@
   <div class="vig"></div>
   <div class="wipe" id="wipe"><div class="msg">loading modern view…</div></div>
 
+  <script src="/js/content.js"></script>
+  <script src="/js/track.js"></script>
+  <script src="/js/lead.js"></script>
   <script>
   (function(){
     var out = document.getElementById('out'), input = document.getElementById('cmd');
+    var esc = MMContent.esc, url = MMContent.url, extra = {}, resumeUrl = '';
     var log = [], logIdx = -1;
 
     var banner =
@@ -148,8 +155,11 @@
           ['projects','selected work'],
           ['experience','where I\'ve been'],
           ['contact','how to reach me'],
-          ['clear','clear the screen']
+          ['hire','send me a project enquiry']
         ];
+        if (resumeUrl) rows.push(['resume','download my résumé']);
+        Object.keys(extra).forEach(function(k){ rows.push([k, extra[k].description || '']); });
+        rows.push(['privacy','tracking & cookie settings'], ['clear','clear the screen']);
         var html = '<div class="resp"><span class="em">Available commands</span><div class="cmdlist">';
         rows.forEach(function(r){ html += '<div class="cmdrow"><span class="c" data-cmd="'+r[0]+'">'+r[0]+'</span><span class="desc">'+r[1]+'</span></div>'; });
         // the special one
@@ -174,18 +184,56 @@
       contact: function(){ return '<div class="resp">Got a project, idea, or just want to say hi?<br/><br/>'+
         '<span class="muted">email&nbsp;&nbsp;&nbsp;</span> <a href="mailto:manil.maharjan07@gmail.com">manil.maharjan07@gmail.com</a><br/>'+
         '<span class="muted">linkedin</span> <a href="https://www.linkedin.com/in/iammanil" target="_blank" rel="noreferrer">linkedin.com/in/iammanil</a><br/>'+
-        '<span class="muted">phone&nbsp;&nbsp;&nbsp;</span> <span style="color:var(--green)">+977 9863777960</span></div>'; }
+        '<span class="muted">phone&nbsp;&nbsp;&nbsp;</span> <span style="color:var(--green)">+977 9863777960</span></div>'; },
+      hire: function(){ setTimeout(MMLead.open, 150); return '<div class="resp">› opening project form… <span class="muted">(or email me — run</span> <span class="c" data-cmd="contact" style="color:var(--cyan);cursor:pointer">contact</span><span class="muted">)</span></div>'; },
+      privacy: function(){ setTimeout(MMTrack.openSettings, 150);
+        return '<div class="resp">Anonymous, cookie-free counts are always on. Detailed tracking only happens if you allow it.<br/><span class="muted">status:</span> '+(MMTrack.hasConsent()?'<b>allowed</b>':'<b>off</b>')+' · <a href="/privacy">read the privacy notice</a></div>'; }
     };
+
+    // CMS-driven output replaces the built-in defaults once content arrives
+    MMContent.ready.then(function(C){
+      if(!C) return;
+      var p = C.profile || {};
+      resumeUrl = url(p.resume);
+      if (p.avatar) document.querySelector('.ident img').src = p.avatar;
+      document.querySelector('.ident .nm').textContent = p.name || '';
+      document.querySelector('.ident .tg').textContent = p.role || '';
+      if (C.cli && C.cli.about) commands.about = function(){ return '<div class="resp">'+C.cli.about+'</div>'; };
+      commands.skills = function(){ return '<div class="resp"><span class="em">Things I know my way around</span><div class="chips">'+
+        (C.skills||[]).map(function(s){ return '<span class="chip">'+esc(s)+'</span>'; }).join('')+'</div></div>'; };
+      commands.projects = function(){ return '<div class="resp">'+(C.projects||[]).map(function(x){
+        var name = url(x.url) ? '<a href="'+url(x.url)+'" target="_blank" rel="noreferrer" data-track="project:'+esc(x.name)+'">'+esc(x.name)+'</a>' : esc(x.name);
+        return '<div class="proj"><span class="pn">'+name+'</span> <span class="pt">· '+esc(x.stack)+'</span><div class="pd">'+x.summary+'</div></div>'; }).join('')+
+        '<span class="muted">→ see these with visuals: run </span><span class="c" data-cmd="switch-modern" style="color:var(--amber);cursor:pointer">switch-modern</span></div>'; };
+      commands.experience = function(){ return '<div class="resp">'+(C.timeline||[]).slice().reverse().map(function(t){
+        return '<div class="proj"><span class="pn">'+esc(t.role)+'</span> <span class="pt">· '+esc(t.company)+' · '+esc(t.period.toLowerCase())+'</span><div class="pd">'+t.description+'</div></div>'; }).join('')+'</div>'; };
+      commands.contact = function(){
+        var rows = '<span class="muted">email&nbsp;&nbsp;&nbsp;</span> <a href="mailto:'+esc(p.email)+'">'+esc(p.email)+'</a><br/>';
+        (C.socials||[]).forEach(function(s){ rows += '<span class="muted">'+esc(s.label.toLowerCase())+'</span> <a href="'+url(s.url)+'" target="_blank" rel="noreferrer">'+esc(s.url.replace(/^https?:\/\/(www\.)?/,''))+'</a><br/>'; });
+        if (p.phone) rows += '<span class="muted">phone&nbsp;&nbsp;&nbsp;</span> <span style="color:var(--green)">'+esc(p.phone)+'</span>';
+        return '<div class="resp">Got a project, idea, or just want to say hi? <span class="muted">(or run</span> <span class="c" data-cmd="hire" style="color:var(--cyan);cursor:pointer">hire</span><span class="muted">)</span><br/><br/>'+rows+'</div>'; };
+      if (resumeUrl) commands.resume = function(){ MMTrack.track('download','resume'); window.open(resumeUrl,'_blank');
+        return '<div class="resp">› downloading résumé… <a href="'+resumeUrl+'" target="_blank" rel="noreferrer">direct link</a></div>'; };
+      extra = {};
+      (C.cli && C.cli.commands || []).forEach(function(k){ extra[k.name] = k; commands[k.name] = function(){ return '<div class="resp">'+k.output+'</div>'; }; });
+    });
+
+    // personal tracked link greeting (?via=...)
+    document.addEventListener('mm:greeting', function(e){
+      out.appendChild(el('<div class="greet">› '+esc(e.detail)+'</div>')); scroll();
+    });
 
     function run(raw){
       var cmd = raw.trim().toLowerCase();
       if(!cmd) return;
       log.push(cmd); logIdx = log.length;
+      var known = cmd==='clear'||cmd==='cls'||cmd==='switch-modern'||cmd==='modern'||cmd==='switch'||!!commands[cmd];
+      MMTrack.track('command', cmd.slice(0,40), known?'ok':'unknown');
       if(cmd==='clear'||cmd==='cls'){ out.innerHTML=''; return; }
       if(cmd==='switch-modern'||cmd==='modern'||cmd==='switch'){ switchModern(cmd); return; }
       var fn = commands[cmd];
-      if(fn){ out.appendChild(el(echo(cmd)+fn())); }
-      else { out.appendChild(el(echo(cmd)+'<div class="err">command not found: '+cmd+'. type <span style="color:var(--cyan)">help</span> for options.</div>')); }
+      if(fn){ out.appendChild(el(echo(esc(cmd))+fn())); }
+      else { out.appendChild(el(echo(esc(cmd))+'<div class="err">command not found: '+esc(cmd)+'. type <span style="color:var(--cyan)">help</span> for options.</div>')); }
       scroll();
     }
 

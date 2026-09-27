@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="robots" content="noindex, nofollow"/>
+<title>Portfolio admin</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<style>
+  :root{--bg:#f6f4ef;--surface:#fff;--surface-2:#f1eee8;--line:#e3ded4;--fg:#1a1714;--dim:#6b6358;--faint:#a39a8c;--accent:#C2461F;--accent-soft:#c2461f1f;
+    --good:#2f8a57;--bad:#c93a32;--radius:12px;--font:system-ui,-apple-system,"Segoe UI",sans-serif;--mono:ui-monospace,"Cascadia Code",Menlo,monospace;}
+  @media(prefers-color-scheme:dark){:root{--bg:#0f0e0d;--surface:#181614;--surface-2:#211e1b;--line:#2e2a26;--fg:#EFE9DE;--dim:#9A8F80;--faint:#6E6457;
+    --accent:#E8862E;--accent-soft:#e8862e22;--good:#5cc28a;--bad:#ef6b62;}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 var(--font);}
+  a{color:var(--accent)}
+  button,input,select,textarea{font:inherit;color:inherit}
+  .btn{padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);cursor:pointer;white-space:nowrap}
+  .btn:hover{border-color:var(--accent)} .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .btn.danger{color:var(--bad)} .btn.sm{padding:4px 9px;font-size:12.5px}
+  input[type=text],input[type=email],input[type=url],input[type=password],input:not([type]),textarea,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+  input:focus,textarea:focus,select:focus,.rte-ed:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+  textarea{min-height:64px;resize:vertical}
+  .hide{display:none!important}
+
+  /* layout */
+  header{position:sticky;top:0;z-index:1000;background:var(--bg);border-bottom:1px solid var(--line)}
+  header .in{max-width:1200px;margin:0 auto;padding:12px 16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  header .brand{font-weight:700;letter-spacing:.01em;margin-right:8px}
+  nav.tabs{display:flex;gap:4px;flex-wrap:wrap;flex:1}
+  nav.tabs a{padding:6px 12px;border-radius:999px;color:var(--dim);text-decoration:none}
+  nav.tabs a.on{background:var(--accent-soft);color:var(--fg)}
+  main{max-width:1200px;margin:0 auto;padding:20px 16px 80px}
+  h1{font-size:22px;margin:0 0 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  h2{font-size:15px;margin:0 0 10px}
+  .muted{color:var(--dim)} .faint{color:var(--faint)} .mono{font-family:var(--mono);font-size:12.5px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+  .grid{display:grid;gap:14px}
+  .g-kpi{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+  .g-2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .toolbar{display:flex;gap:8px;align-items:center;margin-left:auto;font-size:14px;font-weight:400}
+  .toolbar select{width:auto}
+
+  /* KPI tiles */
+  .kpi .label{color:var(--dim);font-size:12.5px}
+  .kpi .val{font-size:28px;font-weight:650;letter-spacing:-.02em;line-height:1.2;margin-top:2px}
+  .kpi .sub{color:var(--faint);font-size:12px}
+
+  /* daily bar chart (single series → no legend; hover tooltip per day) */
+  .chart{position:relative;height:190px;display:flex;align-items:flex-end;gap:2px;border-bottom:1px solid var(--line);padding-top:18px}
+  .chart .col{flex:1;height:100%;display:flex;align-items:flex-end;cursor:default}
+  .chart .bar{width:100%;background:var(--accent);border-radius:4px 4px 0 0;min-height:2px;opacity:.9}
+  .chart .col:hover .bar{opacity:1;box-shadow:0 0 0 2px var(--surface),0 0 0 3px var(--accent)}
+  .chart .ymax{position:absolute;top:0;left:0;font-size:11.5px;color:var(--faint)}
+  .chart .grid-line{position:absolute;left:0;right:0;top:18px;border-top:1px dashed var(--line)}
+  .xaxis{display:flex;justify-content:space-between;color:var(--faint);font-size:11.5px;margin-top:6px}
+  .tip{position:fixed;z-index:2000;pointer-events:none;background:var(--fg);color:var(--bg);padding:6px 9px;border-radius:7px;font-size:12.5px;white-space:nowrap;transform:translate(-50%,-110%)}
+
+  /* bar lists */
+  .blist{display:flex;flex-direction:column;gap:5px}
+  .brow{position:relative;display:flex;justify-content:space-between;gap:10px;padding:5px 8px;border-radius:6px;overflow:hidden}
+  .brow .fill{position:absolute;inset:0 auto 0 0;background:var(--accent-soft);border-radius:6px}
+  .brow span{position:relative}
+  .brow .n{font-variant-numeric:tabular-nums;color:var(--dim)}
+  .tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);color:var(--dim);vertical-align:middle}
+  .tag.warn{color:var(--bad);border-color:currentColor} .tag.ok{color:var(--good);border-color:currentColor} .tag.acc{color:var(--accent);border-color:currentColor}
+  #map{height:320px;border-radius:8px;z-index:0}
+
+  /* tables */
+  .table-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--dim);font-weight:500;font-size:12.5px;white-space:nowrap}
+  tr.click{cursor:pointer} tr.click:hover td{background:var(--surface-2)}
+  .score{display:inline-block;min-width:34px;text-align:center;font-weight:650;border-radius:6px;padding:1px 6px;background:var(--surface-2)}
+  .score.hot{background:var(--accent);color:#fff}
+
+  /* timeline */
+  .session{border-left:2px solid var(--line);padding:2px 0 2px 14px;margin:0 0 16px}
+  .session h3{font-size:12.5px;color:var(--dim);font-weight:500;margin:0 0 6px}
+  .ev{display:flex;gap:10px;padding:3px 0}
+  .ev .t{color:var(--faint);font-family:var(--mono);font-size:12px;min-width:48px}
+
+  /* leads */
+  .lead{display:grid;gap:6px}
+  .lead .msg{white-space:pre-wrap;background:var(--surface-2);border-radius:8px;padding:10px 12px}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+  /* content editor */
+  .sec{margin-bottom:18px}
+  .sec > h2{display:flex;align-items:center;gap:10px}
+  .fields{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  .field label{display:block;font-size:12.5px;color:var(--dim);margin-bottom:4px}
+  .field.wide{grid-column:1/-1}
+  .field .hint{font-size:12px;color:var(--faint);margin-top:3px}
+  .check{display:flex;align-items:center;gap:8px;padding-top:22px}
+  .item{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--surface-2)}
+  .item-head{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+  .item-head strong{flex:1}
+  .img-field{display:flex;gap:10px;align-items:center}
+  .img-field img{width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid var(--line);background:var(--surface)}
+  .img-field input[type=text]{flex:1}
+  .rte{border:1px solid var(--line);border-radius:8px;background:var(--surface);overflow:hidden}
+  .rte-bar{display:flex;gap:2px;padding:4px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+  .rte-bar button{border:0;background:none;padding:3px 9px;border-radius:5px;cursor:pointer;min-width:30px}
+  .rte-bar button:hover{background:var(--line)}
+  .rte-ed{min-height:44px;padding:8px 10px;outline:none}
+  .rte-ed a{color:var(--accent)}
+  .savebar{position:sticky;bottom:0;display:flex;gap:10px;align-items:center;justify-content:flex-end;padding:12px 0;background:linear-gradient(transparent,var(--bg) 30%)}
+
+  /* login */
+  .login{max-width:340px;margin:12vh auto;display:grid;gap:12px}
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:3000;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .toast.err{background:var(--bad);color:#fff}
+  .empty{padding:28px;text-align:center;color:var(--dim)}
+</style>
+</head>
+<body>
+  <form class="login card hide" id="login">
+    <h1 style="margin:0">Portfolio admin</h1>
+    <input type="password" name="password" placeholder="Admin password" autocomplete="current-password" required/>
+    <button class="btn primary" type="submit">Sign in</button>
+    <div class="muted" id="loginMsg"></div>
+  </form>
+
+  <div id="app" class="hide">
+    <header><div class="in">
+      <span class="brand">Portfolio admin</span>
+      <nav class="tabs">
+        <a href="#overview" data-tab="overview">Overview</a>
+        <a href="#visitors" data-tab="visitors">Visitors</a>
+        <a href="#leads" data-tab="leads">Leads</a>
+        <a href="#links" data-tab="links">Tracked links</a>
+        <a href="#content" data-tab="content">Content</a>
+      </nav>
+      <a class="btn sm" href="/" target="_blank">View site ↗</a>
+      <button class="btn sm" id="logout" type="button">Sign out</button>
+    </div></header>
+    <main id="view"></main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="/admin/admin.js"></script>
+</body>
+</html>

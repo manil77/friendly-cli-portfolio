@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Privacy notice — Manil Maharjan</title>
+<meta name="description" content="What this portfolio collects, why, and how to change your choice."/>
+<style>
+  :root{--bg:#F4F1EA;--fg:#1A1714;--dim:#6b6358;--line:#E0DACE;--accent:#C2461F;
+    --mmc-bg:#fff;--mmc-fg:#1A1714;--mmc-line:#E0DACE;--mmc-accent:#C2461F;}
+  @media(prefers-color-scheme:dark){:root{--bg:#1A1816;--fg:#EFE9DE;--dim:#9A8F80;--line:#332E28;--accent:#E8862E;
+    --mmc-bg:#231F1C;--mmc-fg:#EFE9DE;--mmc-line:#332E28;--mmc-accent:#E8862E;}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 system-ui,-apple-system,"Segoe UI",sans-serif;}
+  main{max-width:720px;margin:0 auto;padding:56px 16px 80px;}
+  a{color:var(--accent)}
+  h1{font-size:34px;line-height:1.15;margin:0 0 6px;letter-spacing:-.01em}
+  h2{font-size:19px;margin:36px 0 8px}
+  .meta{color:var(--dim);font-size:14px;margin:0 0 28px}
+  ul{padding-left:20px} li{margin:4px 0}
+  .card{border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:16px 0}
+  button{font:inherit;padding:10px 16px;border-radius:999px;border:1px solid var(--accent);background:transparent;color:var(--fg);cursor:pointer}
+  button:hover{background:var(--accent);color:var(--bg)}
+  table{border-collapse:collapse;width:100%;font-size:14.5px} td,th{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--dim);font-weight:500}
+  .back{display:inline-block;margin-bottom:28px;font-size:14px}
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="/">← Back to the portfolio</a>
+  <h1>Privacy notice</h1>
+  <p class="meta">Last updated 28 September 2026 · Controller: Manil Maharjan, Nepal · <a href="mailto:manil.maharjan07@gmail.com">manil.maharjan07@gmail.com</a></p>
+
+  <p>This is my personal portfolio. I want to know which of my work people find interesting so I can follow up on opportunities. I also want to respect your privacy. There are no ads, no third-party trackers, no session recordings, and I never sell or share data.</p>
+
+  <div class="card">
+    <strong>Your current choice:</strong> <span id="state">…</span><br/>
+    <button type="button" data-privacy-settings style="margin-top:10px">Change cookie settings</button>
+  </div>
+
+  <h2>1. Always on: anonymous statistics</h2>
+  <p>Every page view is counted without cookies or any storage in your browser. I record the page, the website that linked to it (domain only), your country, and whether you're on a phone, tablet or desktop. To count unique visitors per day, your IP address and browser type are combined with a random value that's deleted every day. The result can't be linked to you, and your IP address is never stored.</p>
+
+  <h2>2. Only if you click "Allow": your visit</h2>
+  <ul>
+    <li>A random visitor ID in your browser's local storage, which links your visits together.</li>
+    <li>Your approximate location (city/region level) from your IP address.</li>
+    <li>The name of the network or company you browse from, looked up from your IP address via ipinfo.io. The IP address itself is not stored.</li>
+    <li>Pages viewed, projects clicked, terminal commands typed, time spent, and résumé downloads.</li>
+  </ul>
+  <p>I use this to see which work resonates and to recognise returning visitors and companies, so I can reach out about relevant opportunities. <b>Legal basis:</b> your consent (GDPR Art. 6(1)(a); Nepal Individual Privacy Act 2075). You can withdraw it any time with the button above. Withdrawing deletes this detailed data straight away.</p>
+
+  <h2>3. Personal links</h2>
+  <p>If I sent you a link made just for you, opening it records the time and your country so I know it was opened. Nothing more is recorded unless you click "Allow".</p>
+
+  <h2>4. The contact form</h2>
+  <p>If you send a message, I store your name, email, company (optional) and message, only so I can reply. If you allowed tracking, the message is linked to your visit history. <b>Legal basis:</b> your consent, given with the checkbox on the form.</p>
+
+  <h2>5. Who processes the data</h2>
+  <table>
+    <tr><th>Service</th><th>Purpose</th></tr>
+    <tr><td>Vercel</td><td>Hosting; provides approximate location from your IP address</td></tr>
+    <tr><td>Neon</td><td>Database where the statistics and messages are stored</td></tr>
+    <tr><td>ipinfo.io</td><td>Looks up the network/company name (only after "Allow")</td></tr>
+    <tr><td>Resend</td><td>Sends me email notifications about new messages and visits</td></tr>
+  </table>
+  <p>These providers may process data outside your country, under their own safeguards (such as standard contractual clauses).</p>
+
+  <h2>6. How long it's kept</h2>
+  <ul>
+    <li>Anonymous statistics: 13 months.</li>
+    <li>Detailed visit data: 12 months after your last visit, or until you withdraw consent.</li>
+    <li>Contact messages: until the conversation is over, or at most 24 months. You can ask me to delete them sooner.</li>
+  </ul>
+
+  <h2>7. Your rights</h2>
+  <p>You can ask for a copy of your data, a correction, or deletion. You can also object or complain to your data protection authority. Email me at <a href="mailto:manil.maharjan07@gmail.com">manil.maharjan07@gmail.com</a>. If your browser sends a <b>Global Privacy Control</b> signal, I treat it as "No thanks" automatically. For US residents: I do not sell or share personal information for advertising.</p>
+</main>
+<script src="/js/track.js"></script>
+<script>
+  (function(){
+    var s = document.getElementById('state');
+    function upd(){ s.textContent = navigator.globalPrivacyControl ? 'tracking off (Global Privacy Control)' : MMTrack.hasConsent() ? 'detailed tracking allowed' : 'anonymous statistics only'; }
+    upd(); document.addEventListener('click', function(){ setTimeout(upd, 50); });
+  })();
+</script>
+</body>
+</html>
