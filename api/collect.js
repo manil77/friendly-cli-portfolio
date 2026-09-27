@@ -64,7 +64,7 @@ export async function POST(request) {
         await sql`UPDATE links SET opens = opens + 1, first_open = COALESCE(first_open, now()), last_open = now() WHERE slug = ${link.slug}`;
         if (!link.last_alert || Date.now() - new Date(link.last_alert).getTime() > LINK_ALERT_GAP_MS) {
           await sql`UPDATE links SET last_alert = now() WHERE slug = ${link.slug}`;
-          await sendAlert(`🔗 ${link.label} opened your link`, [
+          await sendAlert(`${link.label} opened your link`, [
             ['Link', link.label], ['Country', g.country], ['Device', `${ua3.device} · ${ua3.browser}`], ['Landing page', ev.path],
             ['Consent', 'Not yet — details appear if they accept tracking'],
           ], `${siteUrl()}/admin#links`);
@@ -123,16 +123,16 @@ export async function POST(request) {
 async function maybeAlert(sql, v, type, ev, link) {
   const done = v.alerted || {};
   const reasons = [];
-  if (v.org && !v.org_is_isp && !done.org) reasons.push(['org', `🏢 Visitor from ${v.org}`]);
-  if (type === 'download' && !done.download) reasons.push(['download', `📄 Someone downloaded your résumé`]);
-  if (v.score >= HOT_SCORE && !done.hot) reasons.push(['hot', `🔥 Hot visitor (score ${v.score})`]);
-  if (link && type === 'consent' && !done.link) reasons.push(['link', `🔗 ${link.label} is browsing your portfolio`]);
+  if (v.org && !v.org_is_isp && !done.org) reasons.push(['org', `Visitor from ${v.org}`]);
+  if (type === 'download' && !done.download) reasons.push(['download', 'Your résumé was downloaded']);
+  if (v.score >= HOT_SCORE && !done.hot) reasons.push(['hot', `Hot visitor, score ${v.score}`]);
+  if (link && type === 'consent' && !done.link) reasons.push(['link', `${link.label} is browsing your portfolio`]);
   if (!reasons.length) return;
 
   const flags = Object.fromEntries(reasons.map(([k]) => [k, true]));
   await sql`UPDATE visitors SET alerted = alerted || ${JSON.stringify(flags)}::jsonb WHERE id = ${v.id}`;
   const recent = await sql`SELECT type, path, name FROM events WHERE visitor_id = ${v.id} ORDER BY ts DESC LIMIT 8`;
   const trail = recent.reverse().map((e) => e.name ? `${e.type}: ${e.name}` : `${e.type} ${e.path || ''}`).join(' → ');
-  await sendAlert(reasons.map((r) => r[1]).join(' · '), [...visitorRows(v), ['Recent activity', trail]],
+  await sendAlert(reasons.map((r) => r[1]).join(' and '), [...visitorRows(v), ['Recent activity', trail]],
     `${siteUrl()}/admin#visitor=${v.id}`);
 }

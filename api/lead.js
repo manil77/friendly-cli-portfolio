@@ -22,9 +22,9 @@ export async function POST(request) {
   const [lead] = await sql`INSERT INTO leads (name, email, company, message, visitor_id)
                            VALUES (${name}, ${email}, ${company}, ${message}, ${visitor ? vid : null}) RETURNING id`;
 
-  await sendAlert(`✉️ New lead: ${name}${company ? ` (${company})` : ''}`, [
+  await sendAlert(`New message from ${name}${company ? ` (${company})` : ''}`, [
     ['Name', name], ['Email', email], ['Company', company], ['Message', message],
     ...(visitor ? visitorRows(visitor) : [['Tracking', 'Visitor did not opt in to analytics']]),
-  ], `${siteUrl()}/admin#leads`);
+  ], `${siteUrl()}/admin#leads`, email); // Reply in your mail app goes straight to the lead
   return json({ ok: true, id: lead.id });
 }
