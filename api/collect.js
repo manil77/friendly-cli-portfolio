@@ -28,7 +28,8 @@ export async function POST(request) {
   const ua = request.headers.get('user-agent') || '';
   if (!b || !TYPES.has(b.t) || isBot(ua)) return json({ ok: true });
 
-  const sql = await db();
+  let sql;
+  try { sql = await db(); } catch (e) { console.error(e.message); return json({ ok: false }, 503); }
   const consent = b.c === 1 && ID_RE.test(b.vid || '');
   const vid = consent ? b.vid : null;
 

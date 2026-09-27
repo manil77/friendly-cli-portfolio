@@ -105,9 +105,10 @@
     leads: '<path d="M3 13l3-8h12l3 8v6H3zM3 13h5l1.5 2.5h5L16 13h5"/>',
     links: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
     content: '<path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"/>',
+    activity: '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
     system: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>'
   };
-  var TABS = [['overview', 'Overview'], ['visitors', 'Visitors'], ['leads', 'Leads'], ['links', 'Tracked links'], ['content', 'Content'], ['system', 'System']];
+  var TABS = [['overview', 'Overview'], ['activity', 'Activity'], ['visitors', 'Visitors'], ['leads', 'Leads'], ['links', 'Tracked links'], ['content', 'Content'], ['system', 'System']];
   document.getElementById('nav').innerHTML = TABS.map(function (t) {
     return '<a href="#' + t[0] + '" data-tab="' + t[0] + '"><svg class="i" viewBox="0 0 24 24">' + I[t[0]] + '</svg><span class="l">' + t[1] + '</span>' +
       (t[0] === 'leads' ? '<span class="badge hide" id="leadBadge"></span>' : '') + '</a>';
@@ -147,7 +148,7 @@
       a.classList.toggle('on', a.getAttribute('data-tab') === (tab === 'visitor' ? 'visitors' : tab));
     });
     skeleton();
-    var fn = { overview: overview, visitors: visitors, visitor: visitor, leads: leads, links: links, content: content, system: system }[tab] || overview;
+    var fn = { overview: overview, activity: activity, visitors: visitors, visitor: visitor, leads: leads, links: links, content: content, system: system }[tab] || overview;
     fn(decodeURIComponent(hsh.split('=')[1] || ''));
     window.scrollTo(0, 0);
   }
@@ -156,6 +157,27 @@
     state.dirty = false; route();
   });
   window.addEventListener('beforeunload', function (e) { if (state.dirty) { e.preventDefault(); e.returnValue = ''; } });
+
+  // one readable line per event, shared by the overview feed and the activity log
+  function describe(e) {
+    var n = e.name || '';
+    switch (e.type) {
+      case 'pageview': return 'viewed <span class="mono">' + esc(e.path || '/') + '</span>' + (e.ref_host ? ' <span class="faint">from ' + esc(e.ref_host) + '</span>' : '');
+      case 'command': return 'typed <span class="mono">' + esc(n) + '</span>' + (e.value === 'unknown' ? ' <span class="tag warn">unknown</span>' : '');
+      case 'click': return /^project:/.test(n) ? 'opened project <b>' + esc(n.slice(8)) + '</b>' : 'clicked ' + esc(n);
+      case 'download': return 'downloaded ' + (n === 'resume' ? 'your résumé' : esc(n));
+      case 'outbound': return n === 'email' ? 'clicked your email' : 'went to ' + esc(n);
+      case 'theme': return 'chose the ' + (n === 'developer' ? 'terminal' : n === 'standard' ? 'visual' : esc(n)) + ' view';
+      case 'engage': return 'spent ' + esc(e.value || '?') + 's on <span class="mono">' + esc(e.path || '/') + '</span>';
+      case 'consent': return 'allowed visit insights';
+      case 'choice': return 'declined visit insights';
+      default: return esc(e.type) + ' ' + esc(n || e.path || '');
+    }
+  }
+  function whoCell(e) {
+    if (e.visitor_id) return '<a href="#visitor=' + esc(e.visitor_id) + '">' + esc(whoName(e)) + '</a>';
+    return '<span class="muted">Anonymous' + (e.country ? ' · ' + esc(regionName(e.country)) : '') + '</span>';
+  }
 
   /* ---------- overview ---------- */
   function barList(title, rows, fmt, note) {
@@ -408,13 +430,9 @@
       view.appendChild(mapCard);
       worldMap(mapCard.querySelector('.mapbox'), s);
 
-      var feed = s.recent.length ? '<div class="feed">' + s.recent.map(function (e) {
-        var who = e.visitor_id ? '<a href="#visitor=' + esc(e.visitor_id) + '">' + esc(whoName(e)) + '</a>' : '<span class="muted">Anonymous' + (e.country ? ' · ' + esc(regionName(e.country)) : '') + '</span>';
-        var what = e.type === 'pageview' ? 'viewed ' + esc(e.path) : e.type === 'command' ? 'typed <span class="mono">' + esc(e.name) + '</span>'
-          : e.type === 'theme' ? 'chose ' + esc(e.name) : e.type === 'consent' ? 'opted in' : e.type === 'choice' ? 'declined tracking'
-          : esc(e.type) + ' ' + esc(e.name || e.path || '');
-        return '<div class="row"><span class="t">' + ago(e.ts) + '</span><span class="what">' + who + ' <span class="muted">' + what + '</span></span></div>';
-      }).join('') + '</div>' : '<div class="muted">No activity yet</div>';
+      var feed = s.recent.length ? '<div class="feed">' + s.recent.slice(0, 8).map(function (e) {
+        return '<div class="row"><span class="t">' + ago(e.ts) + '</span><span class="what">' + whoCell(e) + ' <span class="muted">' + describe(e) + '</span></span></div>';
+      }).join('') + '</div><a class="btn sm" href="#activity" style="margin-top:14px">View all activity →</a>' : '<div class="muted">No activity yet</div>';
       view.appendChild(h('<div class="grid g-2 mt">' +
         barList('Companies', s.companies, function (r) { return esc(r.k) + (r.domain ? ' <span class="faint">' + esc(r.domain) + '</span>' : ''); }, '· excludes ISPs') +
         '<div class="card"><h2>Recent activity</h2>' + feed + '</div></div>'));
@@ -429,6 +447,77 @@
         barList('Devices', s.devices) +
         barList('Downloads & outbound', s.downloads.concat(s.outbound)) + '</div>'));
     }).catch(fail);
+  }
+
+  /* ---------- activity log ---------- */
+  var ACT_TYPES = { pageview: 'Page views', command: 'Commands', click: 'Clicks', download: 'Downloads', outbound: 'Outbound', theme: 'View chosen',
+    engage: 'Time on page', consent: 'Opt-ins', choice: 'Declines' };
+  function activity() {
+    var a = state.act || (state.act = { page: 1, type: '', who: '', q: '' });
+    view.innerHTML = pageHead('Log', 'Activity', '<button class="btn sm" id="refresh">Refresh</button><button class="btn sm" id="csv">Export page</button>');
+    var bar = h('<div class="toolbar"><input type="search" class="search" placeholder="Search page, command, company, city…">' +
+      '<select class="st" id="atype"><option value="">All events</option></select>' +
+      '<select class="st" id="arange"><option value="1">Today</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option><option value="365">Last 12 months</option></select></div>');
+    bar.appendChild(segmented([['', 'Everyone'], ['identified', 'Opted in'], ['anonymous', 'Anonymous']], a.who, function (v) { a.who = v; a.page = 1; load(); }));
+    view.appendChild(bar);
+    var body = h('<div></div>');
+    view.appendChild(body);
+    var search = bar.querySelector('.search'), typeSel = bar.querySelector('#atype'), rangeSel = bar.querySelector('#arange');
+    search.value = a.q; rangeSel.value = String(state.days);
+    var timer;
+    search.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(function () { a.q = search.value; a.page = 1; load(); }, 300); });
+    typeSel.addEventListener('change', function () { a.type = typeSel.value; a.page = 1; load(); });
+    rangeSel.addEventListener('change', function () { state.days = +rangeSel.value; a.page = 1; load(); });
+    view.querySelector('#refresh').addEventListener('click', function () { load(); });
+    var last = [];
+    view.querySelector('#csv').addEventListener('click', function () {
+      downloadCsv('activity-page-' + a.page + '.csv', last, [['Time', 'ts'], ['Visitor', function (e) { return e.visitor_id ? whoName(e) : 'Anonymous'; }], ['Event', 'type'],
+        ['Detail', function (e) { return e.name || ''; }], ['Page', 'path'], ['Value', 'value'], ['Country', function (e) { return regionName(e.country); }], ['Region', 'region'],
+        ['Device', 'device'], ['Referrer', 'ref_host'], ['Tracked link', 'link_slug']]);
+    });
+
+    function dayLabel(ts) {
+      var d = new Date(ts), today = new Date(); today.setHours(0, 0, 0, 0);
+      var diff = Math.round((today - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 864e5);
+      return diff === 0 ? 'Today' : diff === 1 ? 'Yesterday' : d.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+    }
+    function pager(d) {
+      if (d.pages <= 1) return '';
+      var nums = [], p = d.page;
+      for (var i = 1; i <= d.pages; i++) if (i === 1 || i === d.pages || Math.abs(i - p) <= 1) nums.push(i); else if (nums[nums.length - 1] !== '…') nums.push('…');
+      return '<div class="pager"><button class="btn sm" data-p="' + (p - 1) + '"' + (p === 1 ? ' disabled' : '') + '>← Newer</button>' +
+        nums.map(function (x) { return x === '…' ? '<span class="faint">…</span>' : '<button class="pg' + (x === p ? ' on' : '') + '" data-p="' + x + '">' + x + '</button>'; }).join('') +
+        '<button class="btn sm" data-p="' + (p + 1) + '"' + (p === d.pages ? ' disabled' : '') + '>Older →</button></div>';
+    }
+    function load() {
+      body.innerHTML = '<div class="skel" style="height:420px"></div>';
+      var qs = '&page=' + a.page + '&days=' + state.days + '&type=' + encodeURIComponent(a.type) + '&who=' + a.who + '&q=' + encodeURIComponent(a.q);
+      api('activity', null, qs).then(function (d) {
+        last = d.rows;
+        typeSel.innerHTML = '<option value="">All events</option>' + d.types.map(function (t) {
+          return '<option value="' + esc(t.k) + '">' + esc(ACT_TYPES[t.k] || t.k) + ' (' + num(t.n) + ')</option>';
+        }).join('');
+        typeSel.value = a.type;
+        if (!d.rows.length) { body.innerHTML = '<div class="card empty"><b>Nothing here</b>No events match these filters.</div>'; return; }
+        var from = (d.page - 1) * d.per + 1, to = from + d.rows.length - 1, day = null, html = '';
+        d.rows.forEach(function (e) {
+          var label = dayLabel(e.ts);
+          if (label !== day) { day = label; html += '<tr class="day"><td colspan="5">' + esc(label) + '</td></tr>'; }
+          html += '<tr><td class="muted" title="' + esc(when(e.ts)) + '" style="white-space:nowrap">' + new Date(e.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + '</td>' +
+            '<td><div class="who">' + (e.visitor_id ? avatar(e) : '<span class="av">·</span>') + '<div><b>' + whoCell(e) + '</b><small>' +
+              esc([e.city, e.region && e.country ? e.region + ', ' + e.country : regionName(e.country)].filter(Boolean).join(' · ') || '—') + '</small></div></div></td>' +
+            '<td><span class="tag">' + esc(ACT_TYPES[e.type] || e.type) + '</span></td><td>' + describe(e) + '</td>' +
+            '<td class="muted">' + esc(e.device || '') + (e.link_slug ? ' <span class="tag acc">🔗 ' + esc(e.link_slug) + '</span>' : '') + '</td></tr>';
+        });
+        body.innerHTML = '<div class="card table-wrap"><table><thead><tr><th>Time</th><th>Who</th><th>Event</th><th>Detail</th><th>Device</th></tr></thead><tbody>' + html + '</tbody></table></div>' +
+          '<div class="pagebar"><span class="muted">Showing ' + num(from) + '–' + num(to) + ' of ' + num(d.total) + '</span>' + pager(d) + '</div>';
+        body.querySelector('.pagebar').addEventListener('click', function (e) {
+          var b = e.target.closest('[data-p]'); if (!b || b.disabled) return;
+          a.page = +b.getAttribute('data-p'); load(); window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      }).catch(function (e) { body.innerHTML = '<div class="card empty">' + esc(e.message) + '</div>'; });
+    }
+    load();
   }
 
   /* ---------- visitors ---------- */

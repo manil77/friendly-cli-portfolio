@@ -172,6 +172,12 @@
   .star{border:0;background:none;cursor:pointer;font-size:17px;line-height:1;color:var(--line-2);padding:2px}
   .star.on{color:var(--accent)} .star:hover{color:var(--accent)}
 
+  /* activity log */
+  tr.day td{background:var(--panel-2);font:400 10.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);padding:10px 14px}
+  .pagebar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px}
+  .pager{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+  .pg{min-width:34px;height:32px;border-radius:999px;border:1px solid transparent;background:none;cursor:pointer;color:var(--dim)}
+  .pg:hover{border-color:var(--line-2);color:var(--fg)} .pg.on{background:var(--fg);color:var(--bg)}
   /* feed & timeline */
   .feed{display:flex;flex-direction:column}
   .feed .row{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);align-items:baseline}

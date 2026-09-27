@@ -119,6 +119,31 @@ const GET_ACTIONS = {
 
   async content() { return getContent(); },
 
+  // paginated, filterable event log
+  async activity(sql, u) {
+    const per = 50, page = Math.max(1, parseInt(u.searchParams.get('page')) || 1);
+    const since = new Date(Date.now() - DAYS(u) * 864e5).toISOString();
+    const type = u.searchParams.get('type') || '', who = u.searchParams.get('who') || '';
+    const q = (u.searchParams.get('q') || '').trim().slice(0, 80);
+    const params = [since], conds = ['e.ts > $1'];
+    if (/^[a-z]{3,12}$/.test(type)) { params.push(type); conds.push(`e.type = $${params.length}`); }
+    if (who === 'identified') conds.push('e.visitor_id IS NOT NULL');
+    if (who === 'anonymous') conds.push('e.visitor_id IS NULL');
+    if (q) {
+      params.push('%' + q.replace(/[\\%_]/g, '\\$&') + '%');
+      const n = params.length;
+      conds.push(`(e.path ILIKE $${n} OR e.name ILIKE $${n} OR e.ref_host ILIKE $${n} OR v.org ILIKE $${n} OR v.city ILIKE $${n})`);
+    }
+    const where = conds.join(' AND ');
+    const from = 'FROM events e LEFT JOIN visitors v ON v.id = e.visitor_id WHERE ' + where;
+    const [{ n: total }] = await sql.query(`SELECT count(*)::int AS n ${from}`, params);
+    const rows = await sql.query(
+      `SELECT e.id, e.ts, e.type, e.path, e.name, e.value, e.country, e.region, e.device, e.ref_host, e.link_slug, e.visitor_id,
+              v.org, v.org_is_isp, v.city ${from} ORDER BY e.ts DESC, e.id DESC LIMIT ${per} OFFSET ${(page - 1) * per}`, params);
+    const types = await sql`SELECT type AS k, count(*)::int AS n FROM events WHERE ts > ${since} GROUP BY 1 ORDER BY 2 DESC`;
+    return { rows, total, page, per, pages: Math.max(1, Math.ceil(total / per)), types };
+  },
+
   // drill-down for one country on the overview map
   async 'geo-country'(sql, u) {
     const cc = (u.searchParams.get('cc') || '').toUpperCase();

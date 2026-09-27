@@ -115,7 +115,14 @@
   .p-open .lead{position:absolute;left:7vw;top:calc(var(--horizon) + 7vh);max-width:42ch;font-size:17px;line-height:1.6;color:var(--dim);}
   .p-open .lead b{color:var(--ink);font-weight:500;}
   .p-open .status{position:absolute;left:7vw;top:calc(var(--horizon) + 20vh);display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:12px;letter-spacing:.06em;}
-  .p-open .status .d{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent);}
+  .p-open .status{background:transparent;color:var(--ink);border:1px solid color-mix(in srgb,var(--accent) 50%,transparent);border-radius:999px;
+    padding:10px 18px 10px 14px;cursor:pointer;text-transform:uppercase;transition:background .35s var(--ease),color .35s var(--ease),border-color .35s var(--ease);}
+  .p-open .status:hover,.p-open .status:focus-visible{background:var(--accent);border-color:var(--accent);color:var(--paper);outline:none;}
+  .p-open .status .d{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:ping 2.2s cubic-bezier(.16,1,.3,1) infinite;}
+  .p-open .status:hover .d,.p-open .status:focus-visible .d{background:var(--paper);}
+  .p-open .status .arr{transition:transform .35s var(--ease);} .p-open .status:hover .arr{transform:translateX(4px);}
+  @keyframes ping{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 60%,transparent);}75%,100%{box-shadow:0 0 0 12px transparent;}}
+  @media(prefers-reduced-motion:reduce){.p-open .status .d{animation:none;box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent);}}
   .p-open .photo{position:absolute;left:64vw;top:22vh;width:clamp(240px,23vw,310px);}
   .p-open .photo .frame{position:relative;aspect-ratio:4/5;border-radius:10px;overflow:hidden;box-shadow:0 30px 60px rgba(26,23,20,.16);border:1px solid var(--line);}
   .p-open .photo .frame img{width:100%;height:100%;object-fit:cover;filter:contrast(1.03);}
@@ -250,7 +257,7 @@
           <span class="mask"><span>with <em>care.</em></span></span>
         </h1>
         <p class="lead intro" id="cLead" data-d="500">I'm <b>Manil Maharjan</b> — four years building full-stack web apps with <b>.NET</b>, <b>NestJS</b> &amp; <b>PostgreSQL</b>, obsessed with the details that make software feel effortless.</p>
-        <span class="status intro" data-d="600"><span class="d"></span> <span id="cStatus">Available for freelance work</span></span>
+        <button type="button" class="status intro" data-d="600" data-lead data-track="cta:availability"><span class="d"></span> <span id="cStatus">Available for freelance work</span> <span class="arr">→</span></button>
         <div class="photo intro" data-d="400">
           <div class="frame"><img id="cAvatar" src="assets/avatar.jpg" alt="Manil Maharjan"/><span class="cap">NEPAL · 2026</span></div>
         </div>
@@ -276,7 +283,6 @@
         <div class="chapters" id="cChapters">
           <div class="chapter rv">
             <span class="ghost">’22</span>
-            <span class="chno">Chapter 01</span>
             <span class="yr">JAN — APR 2022</span>
             <div class="role">Frontend Intern</div>
             <div class="co"><span class="badge">Internship</span> EKbana Solutions</div>
@@ -285,7 +291,6 @@
           </div>
           <div class="chapter rv d1">
             <span class="ghost">’22</span>
-            <span class="chno">Chapter 02</span>
             <span class="yr">APR 2022 — FEB 2024</span>
             <div class="role">Web Developer</div>
             <div class="co"><span class="badge">Intern → Mid</span> Team Next I.C.T Solutions</div>
@@ -294,7 +299,6 @@
           </div>
           <div class="chapter rv d2">
             <span class="ghost">’24</span>
-            <span class="chno">Chapter 03</span>
             <span class="yr">FEB 2024 — JUN 2026</span>
             <div class="role">Software Developer</div>
             <div class="co">Inficare</div>
@@ -303,7 +307,6 @@
           </div>
           <div class="chapter rv d3">
             <span class="ghost">’25</span>
-            <span class="chno">Chapter 04</span>
             <span class="yr">JAN — AUG 2025</span>
             <div class="role">NestJS Developer</div>
             <div class="co"><span class="badge">Freelance</span> HUKU</div>
@@ -312,7 +315,6 @@
           </div>
           <div class="chapter rv d3 is-now">
             <span class="ghost">’26</span>
-            <span class="chno">Chapter 05</span>
             <span class="yr">JUN 2026 — NOW</span>
             <div class="role">Freelance Engineer</div>
             <div class="co"><span class="dot"></span><span class="badge">Freelance</span> Independent</div>
@@ -321,7 +323,6 @@
           </div>
           <div class="chapter rv d3 is-now">
             <span class="ghost">’26</span>
-            <span class="chno">Chapter 06</span>
             <span class="yr">2026 — NOW</span>
             <div class="role">Something new</div>
             <div class="co"><span class="dot"></span><span class="badge">Stealth</span> In stealth</div>

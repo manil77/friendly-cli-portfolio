@@ -24,7 +24,6 @@
       var yr = (String(t.period).match(/\d{4}/) || [''])[0];
       return '<div class="chapter rv d' + Math.min(i, 3) + (t.current ? ' is-now' : '') + '">' +
         (yr ? '<span class="ghost">’' + yr.slice(2) + '</span>' : '') +
-        '<span class="chno">Chapter ' + String(i + 1).padStart(2, '0') + '</span>' +
         '<span class="yr">' + esc(t.period) + '</span>' +
         '<div class="role">' + esc(t.role) + '</div>' +
         '<div class="co">' + (t.current ? '<span class="dot"></span>' : '') + (t.badge ? '<span class="badge">' + esc(t.badge) + '</span> ' : '') + esc(t.company) + '</div>' +
