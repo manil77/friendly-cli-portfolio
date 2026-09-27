@@ -24,7 +24,7 @@ Without `DATABASE_URL` the dev server uses an embedded Postgres (PGlite) in `.da
 
 ## Deploy (Vercel)
 
-1. Import the GitHub repo in Vercel (framework preset: **Other**; `vercel.json` sets `public/` as output).
+1. Vercel project **friendly-cli-portfolio** is linked to this repo; every push to `main` deploys (framework preset: Other; `vercel.json` sets `public/` as output).
 2. **Storage** tab → connect **Neon Postgres** (adds `DATABASE_URL`) and **Blob** (adds `BLOB_READ_WRITE_TOKEN`).
 3. **Settings → Environment Variables**: `ADMIN_PASSWORD`, `ADMIN_SECRET`, `SITE_URL`, `CRON_SECRET`, and optionally `IPINFO_TOKEN`, `RESEND_API_KEY`, `ALERT_EMAIL_TO`, `ALERT_EMAIL_FROM` (see `.env.example`).
 4. Redeploy. Tables are created automatically on first request.
