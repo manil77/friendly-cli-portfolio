@@ -59,6 +59,11 @@
   .cur{position:fixed;top:0;left:0;width:34px;height:34px;border:1px solid var(--ink);border-radius:50%;z-index:9000;pointer-events:none;
     transition:width .3s var(--ease),height .3s var(--ease),background .3s var(--ease),border-color .3s var(--ease);}
   .cur.on{width:60px;height:60px;background:color-mix(in srgb,var(--accent) 14%,transparent);border-color:var(--accent);}
+  /* dialogs (cookie consent, work-with-me form) use the normal system cursor; the ring hides over them */
+  .cur{transition:width .3s var(--ease),height .3s var(--ease),background .3s var(--ease),border-color .3s var(--ease),opacity .2s;}
+  .cur.off{opacity:0;}
+  html.has-cursor :is(.mmc-card,.mmc-back,.mml-back), html.has-cursor :is(.mmc-card,.mmc-back,.mml-back) *{cursor:auto;}
+  html.has-cursor :is(.mmc-card,.mmc-back,.mml-back) :is(button,a,label,input[type=checkbox],select){cursor:pointer;}
   @media(pointer:coarse){.cur{display:none;}}
 
   .topo{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;}

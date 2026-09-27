@@ -13,7 +13,9 @@
     var ring = document.createElement('div'); ring.className = 'cur';
     document.body.appendChild(ring);
     var x = innerWidth/2, y = innerHeight/2, rx = x, ry = y;
-    addEventListener('mousemove', function (e){ x = e.clientX; y = e.clientY; });
+    var DIALOG = '.mmc-card,.mmc-back,.mml-back';
+    addEventListener('mousemove', function (e){ x = e.clientX; y = e.clientY;
+      ring.classList.toggle('off', !!(e.target.closest && e.target.closest(DIALOG))); });
     (function loop(){ rx = lerp(rx,x,.2); ry = lerp(ry,y,.2);
       ring.style.transform = 'translate('+rx+'px,'+ry+'px) translate(-50%,-50%)'; requestAnimationFrame(loop); })();
     var sel = 'a,button,[data-img],[data-cursor]';
