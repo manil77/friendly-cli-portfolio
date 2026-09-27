@@ -242,13 +242,32 @@
           return '<path class="c' + (n ? ' has' : '') + '" data-cc="' + (n2a[f.id] || '') + '" data-id="' + f.id + '" d="' + path(f) + '" style="fill:' + (n ? shade(n) : 'var(--land)') +
             '" data-tip="' + esc(f.properties.name + ' · ' + (n ? num(n) + ' views · click for detail' : 'no visits')) + '"/>';
         }).join('') + '<path class="hi" d=""/><g class="dots"></g></g></svg>' +
-        '<div class="legend"><span>Fewer</span><span class="ramp"></span><span>More page views</span><span class="dot" style="margin-left:14px"></span><span>Opted-in visitors (city)</span></div></div>' +
+        '<div class="zc"><button type="button" class="icon-btn" data-z="in" title="Zoom in" aria-label="Zoom in">+</button>' +
+        '<button type="button" class="icon-btn" data-z="out" title="Zoom out" aria-label="Zoom out">−</button>' +
+        '<button type="button" class="icon-btn" data-z="reset" title="Reset view" aria-label="Reset view">⟲</button></div>' +
+        '<div class="legend"><span>Fewer</span><span class="ramp"></span><span>More page views</span><span class="dot" style="margin-left:14px"></span><span>Opted-in visitors (city)</span>' +
+        '<span class="faint" style="margin-left:auto">Scroll or +/− to zoom · drag to pan</span></div></div>' +
         '<aside class="mpanel"></aside></div>';
 
       var svg = el.querySelector('svg'), zoomG = el.querySelector('.zoom'), dotsG = el.querySelector('.dots'), hi = el.querySelector('.hi'), panel = el.querySelector('.mpanel');
-      var k = 1, current = null;
+      var view = { k: 1, x: 0, y: 0 }, current = null, lastDots = [[], false];
+      function apply(animate) {
+        view.x = Math.min(0, Math.max(W - W * view.k, view.x));
+        view.y = Math.min(0, Math.max(H - H * view.k, view.y));
+        zoomG.classList.toggle('instant', !animate);
+        svg.classList.toggle('zoomed', view.k > 1.01);
+        zoomG.style.transform = 'translate(' + view.x + 'px,' + view.y + 'px) scale(' + view.k + ')';
+        dots(lastDots[0], lastDots[1]);
+      }
+      function zoomAt(factor, sx, sy, animate) {
+        var k2 = Math.max(1, Math.min(40, view.k * factor));
+        view.x = sx - (sx - view.x) * (k2 / view.k); view.y = sy - (sy - view.y) * (k2 / view.k); view.k = k2;
+        apply(animate);
+      }
+      function svgPoint(e) { var r = svg.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; }
 
       function dots(list, labels) {
+        var k = view.k; lastDots = [list, labels];
         dotsG.innerHTML = list.map(function (p) {
           var xy = proj([+p.lon, +p.lat]); if (!xy) return '';
           var r = (3.5 + Math.min(4, (p.score || 0) / 15)) / k;
@@ -271,11 +290,12 @@
       }
 
       function reset() {
-        current = null; k = 1;
-        zoomG.style.transform = '';
+        current = null;
+        view = { k: 1, x: 0, y: 0 };
         [].forEach.call(zoomG.querySelectorAll('path.c'), function (p) { p.classList.remove('dim', 'sel'); });
         hi.setAttribute('d', '');
-        dots(s.map, false);
+        lastDots = [s.map, false];
+        apply(true);
         worldPanel();
       }
 
@@ -283,9 +303,10 @@
         var id = a2n[cc], f = byId[id]; if (!f) return;
         current = cc;
         var b = path.bounds(f), dx = b[1][0] - b[0][0], dy = b[1][1] - b[0][1];
-        k = Math.max(1, Math.min(28, 0.8 / Math.max(dx / W, dy / H)));
-        var tx = W / 2 - k * (b[0][0] + b[1][0]) / 2, ty = H / 2 - k * (b[0][1] + b[1][1]) / 2;
-        zoomG.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + k + ')';
+        var k = Math.max(1, Math.min(28, 0.8 / Math.max(dx / W, dy / H)));
+        view = { k: k, x: W / 2 - k * (b[0][0] + b[1][0]) / 2, y: H / 2 - k * (b[0][1] + b[1][1]) / 2 };
+        lastDots = [[], true];
+        apply(true);
         [].forEach.call(zoomG.querySelectorAll('path.c'), function (p) { var me = p.getAttribute('data-id') === id; p.classList.toggle('sel', me); p.classList.toggle('dim', !me); });
         hi.setAttribute('d', path(f));
         hiRes().then(function (w) {
@@ -293,7 +314,6 @@
           var g = w.objects.countries.geometries.filter(function (x) { return x.id === id; })[0];
           if (g) hi.setAttribute('d', path(topojson.feature(w, g)));
         }).catch(function () {});
-        dotsG.innerHTML = '';
         panel.innerHTML = '<div class="skel" style="height:240px"></div>';
         Promise.all([api('geo-country', null, '&cc=' + cc + '&days=' + state.days), regionNames()]).then(function (r) {
           if (current !== cc) return;
@@ -317,7 +337,32 @@
         }).catch(function (e) { panel.innerHTML = '<button class="btn sm" data-reset>← World</button><p class="muted">' + esc(e.message) + '</p>'; });
       }
 
+      svg.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        var pt = svgPoint(e); zoomAt(Math.exp(-e.deltaY * 0.0015), pt[0], pt[1], false);
+      }, { passive: false });
+      var drag = null, moved = false;
+      svg.addEventListener('pointerdown', function (e) {
+        if (e.button !== 0) return;
+        drag = { p: svgPoint(e), x: view.x, y: view.y }; moved = false;
+      });
+      svg.addEventListener('pointermove', function (e) {
+        if (!drag) return;
+        var pt = svgPoint(e), dx = pt[0] - drag.p[0], dy = pt[1] - drag.p[1];
+        if (!moved && Math.abs(dx) + Math.abs(dy) < 5) return;
+        if (!moved) { moved = true; svg.setPointerCapture(e.pointerId); svg.classList.add('dragging'); }
+        view.x = drag.x + dx; view.y = drag.y + dy; apply(false);
+      });
+      svg.addEventListener('pointerup', function () { drag = null; svg.classList.remove('dragging'); });
+      el.querySelector('.zc').addEventListener('click', function (e) {
+        var z = e.target.closest('[data-z]'); if (!z) return;
+        var a = z.getAttribute('data-z');
+        if (a === 'in') zoomAt(1.6, W / 2, H / 2, true);
+        else if (a === 'out') zoomAt(1 / 1.6, W / 2, H / 2, true);
+        else if (current) reset(); else { view = { k: 1, x: 0, y: 0 }; apply(true); }
+      });
       svg.addEventListener('click', function (e) {
+        if (moved) { moved = false; return; } // end of a drag, not a click
         var p = e.target.closest('path.c');
         if (p) { var cc = p.getAttribute('data-cc'); if (cc && cc !== current) select(cc); }
         else if (current && !e.target.closest('circle')) reset();

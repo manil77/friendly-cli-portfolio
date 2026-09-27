@@ -115,6 +115,10 @@
   .map{position:relative;min-width:0}
   .map svg{display:block;width:100%;height:auto;border-radius:12px;overflow:hidden}
   .map .zoom{transform-origin:0 0;transition:transform .9s var(--ease)}
+  .map .zoom.instant{transition:none}
+  .map svg{cursor:grab} .map svg.zoomed{touch-action:none} .map svg.dragging{cursor:grabbing}
+  .zc{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;gap:6px}
+  .zc .icon-btn{width:34px;height:34px;font-size:17px;line-height:1;background:var(--panel);box-shadow:var(--shadow);color:var(--fg)}
   .map path,.map circle{vector-effect:non-scaling-stroke}
   .map .sphere{fill:var(--panel-2);stroke:var(--line)}
   .map path.c{stroke:var(--panel);stroke-width:.6;transition:opacity .5s}
