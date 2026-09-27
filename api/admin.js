@@ -118,6 +118,28 @@ const GET_ACTIONS = {
   },
 
   async content() { return getContent(); },
+
+  // drill-down for one country on the overview map
+  async 'geo-country'(sql, u) {
+    const cc = (u.searchParams.get('cc') || '').toUpperCase();
+    if (!/^[A-Z]{2}$/.test(cc)) return null;
+    const since = new Date(Date.now() - DAYS(u) * 864e5).toISOString();
+    const [totals] = await sql`
+      SELECT count(*) FILTER (WHERE type = 'pageview')::int AS pageviews,
+             count(DISTINCT COALESCE(visitor_id, anon_id)) FILTER (WHERE type = 'pageview')::int AS uniques,
+             count(DISTINCT visitor_id)::int AS identified
+      FROM events WHERE ts > ${since} AND country = ${cc}`;
+    const regions = await sql`SELECT region AS k, count(*)::int AS n FROM events
+                              WHERE ts > ${since} AND country = ${cc} AND type = 'pageview' AND region IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 25`;
+    const referrers = await sql`SELECT ref_host AS k, count(*)::int AS n FROM events
+                                WHERE ts > ${since} AND country = ${cc} AND type = 'pageview' AND ref_host IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 6`;
+    const cities = await sql`
+      SELECT city AS k, max(region) AS region, avg(lat) AS lat, avg(lon) AS lon, count(*)::int AS n, max(score)::int AS score
+      FROM visitors WHERE last_seen > ${since} AND country = ${cc} AND city IS NOT NULL GROUP BY city ORDER BY n DESC, score DESC LIMIT 40`;
+    const people = await sql`SELECT id, org, org_is_isp, city, region, country, score, last_seen FROM visitors
+                             WHERE last_seen > ${since} AND country = ${cc} ORDER BY score DESC, last_seen DESC LIMIT 8`;
+    return { cc, totals, regions, referrers, cities, people };
+  },
 };
 
 const POST_ACTIONS = {

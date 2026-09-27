@@ -190,42 +190,148 @@
       }).join('') + '</div><div class="xaxis"><span>' + fmt(series[0].day) + '</span><span>' + (series.length > 2 ? fmt(series[Math.floor(series.length / 2)].day) : '') + '</span><span>Today</span></div>';
   }
 
-  var geoData;
-  function worldMap(el, geo, points) {
-    var js = 'https://cdn.jsdelivr.net/npm/';
-    loadScript(js + 'd3-array@3/dist/d3-array.min.js')
-      .then(function () { return loadScript(js + 'd3-geo@3/dist/d3-geo.min.js'); })
-      .then(function () { return loadScript(js + 'topojson-client@3/dist/topojson-client.min.js'); })
+  /* ---------- interactive world map: click a country to zoom in and see its states, cities and people ---------- */
+  var JSD = 'https://cdn.jsdelivr.net/npm/';
+  var geoLib, world50, regionDB;
+  function mapLibs() {
+    return geoLib || (geoLib = loadScript(JSD + 'd3-array@3/dist/d3-array.min.js')
+      .then(function () { return loadScript(JSD + 'd3-geo@3/dist/d3-geo.min.js'); })
+      .then(function () { return loadScript(JSD + 'topojson-client@3/dist/topojson-client.min.js'); })
       .then(function () {
-        return geoData || (geoData = Promise.all([
-          fetch(js + 'world-atlas@2/countries-110m.json').then(function (r) { return r.json(); }),
-          fetch(js + 'i18n-iso-countries@7/codes.json').then(function (r) { return r.json(); })
-        ]));
-      })
-      .then(function (res) {
-        var world = res[0], a2n = {};
-        res[1].forEach(function (c) { a2n[c[0]] = c[2]; });
-        var counts = {}, max = 1;
-        geo.forEach(function (g) { var id = a2n[g.k]; if (id) { counts[id] = (counts[id] || 0) + g.n; max = Math.max(max, counts[id]); } });
-        var W = 960, H = 470;
-        var proj = d3.geoNaturalEarth1().fitExtent([[6, 6], [W - 6, H - 6]], { type: 'Sphere' });
-        var path = d3.geoPath(proj);
-        var feats = topojson.feature(world, world.objects.countries).features.filter(function (f) { return f.id !== '010'; }); // drop Antarctica
-        var shade = function (n) { return 'color-mix(in oklab,var(--accent) ' + Math.round(18 + 82 * Math.log(1 + n) / Math.log(1 + max)) + '%,var(--land))'; };
-        var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Page views by country"><path class="sphere" d="' + path({ type: 'Sphere' }) + '"/>' +
-          feats.map(function (f) {
-            var n = counts[f.id] || 0;
-            return '<path class="c" d="' + path(f) + '" style="fill:' + (n ? shade(n) : 'var(--land)') + '" data-tip="' + esc(f.properties.name + ' · ' + (n ? num(n) + ' views' : 'no visits')) + '"/>';
-          }).join('') +
-          points.map(function (p) {
-            var xy = proj([p.lon, p.lat]); if (!xy) return '';
-            return '<circle cx="' + xy[0].toFixed(1) + '" cy="' + xy[1].toFixed(1) + '" r="' + (3.5 + Math.min(4, p.score / 15)).toFixed(1) + '" data-tip="' +
-              esc([p.org, p.city, regionName(p.country)].filter(Boolean).join(' · ') + ' · score ' + p.score) + '"/>';
-          }).join('') + '</svg>';
-        el.innerHTML = svg + '<div class="legend"><span>Fewer</span><span class="ramp"></span><span>More page views</span>' +
-          (points.length ? '<span style="margin-left:14px" class="dot"></span><span>Opted-in visitor (city)</span>' : '') + '</div>';
-      })
-      .catch(function (e) { el.innerHTML = '<div class="empty">Map unavailable: ' + esc(e.message) + '</div>'; });
+        return Promise.all([
+          fetch(JSD + 'world-atlas@2/countries-110m.json').then(function (r) { return r.json(); }),
+          fetch(JSD + 'i18n-iso-countries@7/codes.json').then(function (r) { return r.json(); })
+        ]);
+      }).catch(function (e) { geoLib = null; throw e; }));
+  }
+  // detailed outlines, fetched only when a country is opened
+  function hiRes() { return world50 || (world50 = fetch(JSD + 'world-atlas@2/countries-50m.json').then(function (r) { return r.json(); })); }
+  var GB_NATIONS = { ENG: 'England', SCT: 'Scotland', WLS: 'Wales', NIR: 'Northern Ireland' };
+  function regionNames() {
+    return regionDB || (regionDB = fetch(JSD + 'country-region-data@3/data.json').then(function (r) { return r.json(); }).then(function (list) {
+      var m = {};
+      list.forEach(function (c) { var o = m[c.countryShortCode] = {}; c.regions.forEach(function (r) { if (r.shortCode) o[r.shortCode] = r.name; }); });
+      return m;
+    }).catch(function () { return {}; }));
+  }
+  function regionLabel(db, cc, code) {
+    if (!code) return 'Unknown';
+    if (cc === 'GB' && GB_NATIONS[code]) return GB_NATIONS[code];
+    var o = db[cc] || {};
+    return o[code] || o[code.replace(/^P/, '')] || o[code.replace(/^0+/, '')] || code;
+  }
+
+  function worldMap(el, s) {
+    el.innerHTML = '<div class="skel" style="height:380px"></div>';
+    mapLibs().then(function (res) {
+      var world = res[0], a2n = {}, n2a = {};
+      res[1].forEach(function (c) { a2n[c[0]] = c[2]; n2a[c[2]] = c[0]; });
+      var counts = {}, max = 1;
+      s.geo.forEach(function (g) { var id = a2n[g.k]; if (id) { counts[id] = (counts[id] || 0) + g.n; max = Math.max(max, counts[id]); } });
+      var W = 960, H = 470;
+      var proj = d3.geoNaturalEarth1().fitExtent([[6, 6], [W - 6, H - 6]], { type: 'Sphere' });
+      var path = d3.geoPath(proj);
+      var feats = topojson.feature(world, world.objects.countries).features.filter(function (f) { return f.id !== '010'; }); // no Antarctica
+      var byId = {}; feats.forEach(function (f) { byId[f.id] = f; });
+      var shade = function (n) { return 'color-mix(in oklab,var(--accent) ' + Math.round(18 + 82 * Math.log(1 + n) / Math.log(1 + max)) + '%,var(--land))'; };
+
+      el.innerHTML = '<div class="mapwrap"><div class="map"><svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Page views by country. Click a country for detail.">' +
+        '<g class="zoom"><path class="sphere" d="' + path({ type: 'Sphere' }) + '"/>' +
+        feats.map(function (f) {
+          var n = counts[f.id] || 0;
+          return '<path class="c' + (n ? ' has' : '') + '" data-cc="' + (n2a[f.id] || '') + '" data-id="' + f.id + '" d="' + path(f) + '" style="fill:' + (n ? shade(n) : 'var(--land)') +
+            '" data-tip="' + esc(f.properties.name + ' · ' + (n ? num(n) + ' views · click for detail' : 'no visits')) + '"/>';
+        }).join('') + '<path class="hi" d=""/><g class="dots"></g></g></svg>' +
+        '<div class="legend"><span>Fewer</span><span class="ramp"></span><span>More page views</span><span class="dot" style="margin-left:14px"></span><span>Opted-in visitors (city)</span></div></div>' +
+        '<aside class="mpanel"></aside></div>';
+
+      var svg = el.querySelector('svg'), zoomG = el.querySelector('.zoom'), dotsG = el.querySelector('.dots'), hi = el.querySelector('.hi'), panel = el.querySelector('.mpanel');
+      var k = 1, current = null;
+
+      function dots(list, labels) {
+        dotsG.innerHTML = list.map(function (p) {
+          var xy = proj([+p.lon, +p.lat]); if (!xy) return '';
+          var r = (3.5 + Math.min(4, (p.score || 0) / 15)) / k;
+          var name = p.k || p.city || '';
+          return '<g data-city="' + esc(name) + '"><circle cx="' + xy[0].toFixed(2) + '" cy="' + xy[1].toFixed(2) + '" r="' + r.toFixed(3) + '" data-tip="' +
+            esc([p.org, name, regionName(p.country)].filter(Boolean).join(' · ') + (p.n ? ' · ' + p.n + (p.n === 1 ? ' visitor' : ' visitors') : '') + ' · score ' + (p.score || 0)) + '"/>' +
+            (labels && name ? '<text x="' + (xy[0] + r * 1.7).toFixed(2) + '" y="' + (xy[1] + r * .55).toFixed(2) + '" style="font-size:' + (12 / k).toFixed(3) + 'px">' + esc(name) + '</text>' : '') + '</g>';
+        }).join('');
+      }
+
+      function worldPanel() {
+        var rows = s.geo.slice().sort(function (a, b) { return b.n - a.n; });
+        var top = Math.max.apply(null, rows.map(function (r) { return r.n; }).concat(1));
+        panel.innerHTML = '<span class="kicker">World</span><h3>' + rows.length + ' ' + (rows.length === 1 ? 'country' : 'countries') + '</h3>' +
+          '<p class="muted">Click a country on the map, or below, to see its states, cities and the people who visited.</p>' +
+          (rows.length ? '<div class="blist">' + rows.slice(0, 12).map(function (r) {
+            return '<a class="brow" href="javascript:void 0" data-pick="' + esc(r.k) + '"><span class="fill" style="width:' + (r.n / top * 100) + '%"></span><span>' + esc(regionName(r.k)) +
+              '</span><span class="n">' + num(r.n) + '</span></a>';
+          }).join('') + '</div>' : '<div class="muted">No visits yet</div>');
+      }
+
+      function reset() {
+        current = null; k = 1;
+        zoomG.style.transform = '';
+        [].forEach.call(zoomG.querySelectorAll('path.c'), function (p) { p.classList.remove('dim', 'sel'); });
+        hi.setAttribute('d', '');
+        dots(s.map, false);
+        worldPanel();
+      }
+
+      function select(cc) {
+        var id = a2n[cc], f = byId[id]; if (!f) return;
+        current = cc;
+        var b = path.bounds(f), dx = b[1][0] - b[0][0], dy = b[1][1] - b[0][1];
+        k = Math.max(1, Math.min(28, 0.8 / Math.max(dx / W, dy / H)));
+        var tx = W / 2 - k * (b[0][0] + b[1][0]) / 2, ty = H / 2 - k * (b[0][1] + b[1][1]) / 2;
+        zoomG.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + k + ')';
+        [].forEach.call(zoomG.querySelectorAll('path.c'), function (p) { var me = p.getAttribute('data-id') === id; p.classList.toggle('sel', me); p.classList.toggle('dim', !me); });
+        hi.setAttribute('d', path(f));
+        hiRes().then(function (w) {
+          if (current !== cc) return;
+          var g = w.objects.countries.geometries.filter(function (x) { return x.id === id; })[0];
+          if (g) hi.setAttribute('d', path(topojson.feature(w, g)));
+        }).catch(function () {});
+        dotsG.innerHTML = '';
+        panel.innerHTML = '<div class="skel" style="height:240px"></div>';
+        Promise.all([api('geo-country', null, '&cc=' + cc + '&days=' + state.days), regionNames()]).then(function (r) {
+          if (current !== cc) return;
+          var d = r[0], db = r[1], t = d.totals;
+          dots(d.cities.map(function (c) { c.country = cc; return c; }), true);
+          var rmax = Math.max.apply(null, d.regions.map(function (x) { return x.n; }).concat(1));
+          panel.innerHTML = '<button class="btn sm" data-reset>← World</button>' +
+            '<span class="kicker" style="display:block;margin-top:16px">' + esc(cc) + '</span><h3>' + esc(regionName(cc)) + '</h3>' +
+            '<div class="mstats"><div><b>' + num(t.pageviews) + '</b><span>views</span></div><div><b>' + num(t.uniques) + '</b><span>visitors</span></div><div><b>' + num(t.identified) + '</b><span>opted in</span></div></div>' +
+            '<h4>States & provinces</h4>' + (d.regions.length ? '<div class="blist">' + d.regions.map(function (x) {
+              return '<div class="brow"><span class="fill" style="width:' + (x.n / rmax * 100) + '%"></span><span>' + esc(regionLabel(db, cc, x.k)) + '</span><span class="n">' + num(x.n) + '</span></div>';
+            }).join('') + '</div>' : '<div class="muted">No region data yet</div>') +
+            '<h4>Cities <span class="faint">· opted-in visitors</span></h4>' + (d.cities.length ? '<div class="blist">' + d.cities.map(function (c) {
+              return '<div class="brow" data-hl="' + esc(c.k) + '"><span>' + esc(c.k) + (c.region ? ' <span class="faint">' + esc(regionLabel(db, cc, c.region)) + '</span>' : '') +
+                '</span><span class="n">' + c.n + '</span></div>';
+            }).join('') + '</div>' : '<div class="muted">None yet</div>') +
+            (d.people.length ? '<h4>People</h4><div class="feed">' + d.people.map(function (v) {
+              return '<div class="row"><span class="what"><a href="#visitor=' + esc(v.id) + '">' + esc(whoName(v)) + '</a> <span class="faint">· score ' + v.score + '</span></span></div>';
+            }).join('') + '</div>' : '') +
+            (d.referrers.length ? '<h4>Came from</h4><div class="muted">' + d.referrers.map(function (x) { return esc(x.k) + ' (' + x.n + ')'; }).join(', ') + '</div>' : '');
+        }).catch(function (e) { panel.innerHTML = '<button class="btn sm" data-reset>← World</button><p class="muted">' + esc(e.message) + '</p>'; });
+      }
+
+      svg.addEventListener('click', function (e) {
+        var p = e.target.closest('path.c');
+        if (p) { var cc = p.getAttribute('data-cc'); if (cc && cc !== current) select(cc); }
+        else if (current && !e.target.closest('circle')) reset();
+      });
+      panel.addEventListener('click', function (e) {
+        if (e.target.closest('[data-reset]')) reset();
+        var pick = e.target.closest('[data-pick]'); if (pick) select(pick.getAttribute('data-pick'));
+      });
+      panel.addEventListener('mouseover', function (e) {
+        var row = e.target.closest('[data-hl]');
+        [].forEach.call(dotsG.querySelectorAll('g[data-city]'), function (g) { g.classList.toggle('hl', !!row && g.getAttribute('data-city') === row.getAttribute('data-hl')); });
+      });
+      reset();
+    }).catch(function (e) { el.innerHTML = '<div class="empty">Map unavailable: ' + esc(e.message) + '</div>'; });
   }
 
   function overview() {
@@ -253,9 +359,9 @@
         '<div class="card"><h2>Traffic <span class="muted">· ' + range + '</span></h2>' + chart(s.daily, s.days) + '</div>' +
         barList('Funnel', funnelRows, function (r) { return esc(r.k) + ' <span class="faint">' + Math.round(r.n / top * 100) + '%</span>'; }) + '</div>'));
 
-      var mapCard = h('<div class="card mt"><h2>Where visitors are <span class="muted">· countries from all visits, dots from opted-in visitors</span></h2><div class="map"><div class="skel" style="height:360px"></div></div></div>');
+      var mapCard = h('<div class="card mt"><h2>Where visitors are <span class="muted">· click a country to drill into its states and cities</span></h2><div class="mapbox"></div></div>');
       view.appendChild(mapCard);
-      worldMap(mapCard.querySelector('.map'), s.geo, s.map);
+      worldMap(mapCard.querySelector('.mapbox'), s);
 
       var feed = s.recent.length ? '<div class="feed">' + s.recent.map(function (e) {
         var who = e.visitor_id ? '<a href="#visitor=' + esc(e.visitor_id) + '">' + esc(whoName(e)) + '</a>' : '<span class="muted">Anonymous' + (e.country ? ' · ' + esc(regionName(e.country)) : '') + '</span>';

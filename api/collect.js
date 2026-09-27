@@ -1,5 +1,5 @@
 // Visitor tracking ingest. Two tiers:
-//  - no consent: anonymous aggregate event (country, device, referrer host, daily-rotating hash for unique counts; IP never stored)
+//  - no consent: anonymous aggregate event (country, region, device, referrer host, daily-rotating hash for unique counts; IP never stored)
 //  - consent (c=1 + vid): visitor profile with city, company network, session history and lead score
 import { createHash, randomBytes } from 'node:crypto';
 import { db } from '../lib/db.js';
@@ -74,8 +74,8 @@ export async function POST(request) {
 
   if (!consent) {
     const anon = await dailyHash(sql, clientIp(request) + ua);
-    await sql`INSERT INTO events (consent, anon_id, type, path, name, value, ref_host, country, device, link_slug)
-              VALUES (false, ${anon}, ${b.t}, ${ev.path}, ${ev.name}, ${ev.value}, ${ev.ref}, ${g.country}, ${ua3.device}, ${ev.slug})`;
+    await sql`INSERT INTO events (consent, anon_id, type, path, name, value, ref_host, country, region, device, link_slug)
+              VALUES (false, ${anon}, ${b.t}, ${ev.path}, ${ev.name}, ${ev.value}, ${ev.ref}, ${g.country}, ${g.region}, ${ua3.device}, ${ev.slug})`;
     return json(out);
   }
 
@@ -102,8 +102,8 @@ export async function POST(request) {
       score = visitors.score + ${pts + (newSession ? 5 : 0)} + (CASE WHEN visitors.link_slug IS NULL AND EXCLUDED.link_slug IS NOT NULL THEN 10 ELSE 0 END)
     RETURNING *, (xmax = 0) AS inserted`;
 
-  await sql`INSERT INTO events (consent, visitor_id, session_id, type, path, name, value, ref_host, country, device, link_slug)
-            VALUES (true, ${vid}, ${sid}, ${b.t}, ${ev.path}, ${ev.name}, ${ev.value}, ${ev.ref}, ${g.country}, ${ua3.device}, ${ev.slug})`;
+  await sql`INSERT INTO events (consent, visitor_id, session_id, type, path, name, value, ref_host, country, region, device, link_slug)
+            VALUES (true, ${vid}, ${sid}, ${b.t}, ${ev.path}, ${ev.name}, ${ev.value}, ${ev.ref}, ${g.country}, ${g.region}, ${ua3.device}, ${ev.slug})`;
 
   // company lookup once per visitor (IP is used for the lookup only, never stored)
   if (v.inserted || v.org == null) {
