@@ -185,8 +185,8 @@ const POST_ACTIONS = {
   },
 
   async 'test-alert'() {
-    const sent = await sendAlert('Test alert from your portfolio', [['Sent at', new Date().toUTCString()], ['Dashboard', siteUrl() + '/admin']]);
-    return sent ? { ok: true } : { error: 'Not sent. Check RESEND_API_KEY, ALERT_EMAIL_TO and the sender domain in Resend.' };
+    const r = await sendAlert('Test alert from your portfolio', [['Sent at', new Date().toUTCString()], ['Dashboard', siteUrl() + '/admin']]);
+    return r.ok ? { ok: true, to: process.env.ALERT_EMAIL_TO } : { error: r.error };
   },
   async 'lead-delete'(sql, b) { await sql`DELETE FROM leads WHERE id = ${+b.id}`; return { ok: true }; },
 

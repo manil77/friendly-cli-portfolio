@@ -20,7 +20,7 @@
   function when(ts) { return new Date(ts).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }); }
   function toast(msg, err) {
     var t = h('<div class="toast' + (err ? ' err' : '') + '">' + esc(msg) + '</div>');
-    document.body.appendChild(t); setTimeout(function () { t.remove(); }, 2800);
+    document.body.appendChild(t); setTimeout(function () { t.remove(); }, err ? 9000 : 3200);
   }
   function api(action, body, qs) {
     var opts = body ? { method: 'POST', headers: { 'content-type': 'application/json', 'x-admin': '1' }, body: JSON.stringify(body) } : {};
@@ -927,7 +927,7 @@
         '</div></div>'));
       view.querySelector('#test').addEventListener('click', function () {
         var b = this; b.disabled = true;
-        api('test-alert', {}).then(function () { toast('Test alert sent. Check your inbox.'); }).catch(fail).then(function () { b.disabled = false; });
+        api('test-alert', {}).then(function (d) { toast('Sent to ' + d.to + '. Check your inbox and spam folder.'); }).catch(fail).then(function () { b.disabled = false; });
       });
     }).catch(fail);
   }
