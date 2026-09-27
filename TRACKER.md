@@ -1,7 +1,7 @@
 # 📋 Portfolio Tracker
 
 > Living roadmap + experiment log for **manil77/friendly-cli-portfolio**.
-> _Last updated: 2026-06-15_
+> _Last updated: 2026-09-28_
 
 A two-mode personal portfolio (retro CLI entry → modern horizontal-scroll site).
 Right now the **UI foundation is done**; next we add **visitor analytics** and a
@@ -16,9 +16,9 @@ truth for what's planned, what's in flight, and what we learned.
 | --------------- | -------------- | ------------------------------------------------------ |
 | UI / front-end  | ✅ Done (base) | `index.html` (CLI) + `home-horizontal.html` (modern)   |
 | Assets          | ✅ Consolidated | All under `assets/`                                     |
-| Hosting         | 🟡 Static only | GitHub Pages from `main` (assumed) — no backend yet    |
-| Visitor tracking| 🔴 Not started | **Current focus** — see Phase 1                         |
-| Backend         | 🔴 Not started | Needed for analytics ingestion, contact form, etc.     |
+| Hosting         | 🟡 Ready       | Vercel config in repo — needs project + Neon/Blob hookup |
+| Visitor tracking| ✅ Built       | Consent-based, first-party (`api/collect`, `js/track.js`) |
+| Backend + CMS   | ✅ Built       | `/admin`: dashboard, visitors, leads, links, content     |
 | Experiments     | 🟢 Ongoing     | Log them below                                          |
 
 Legend: ✅ done · 🟡 partial · 🟢 active · 🔴 not started
@@ -121,6 +121,10 @@ Track every experiment so we keep what works and kill what doesn't.
 | ---------- | -------- | --- |
 | 2026-06-15 | Keep committing portfolio directly to `main` | Solo project; live site deploys from `main` |
 | 2026-06-15 | Created this tracker | Centralize roadmap + experiments before adding backend/analytics |
+| 2026-09-28 | Vercel + Neon Postgres + Blob, custom first-party tracking | Own the data, cookieless by default, no third-party pixels (CIPA/GDPR risk) |
+| 2026-09-28 | Two-tier consent: anonymous always, detailed only after "Allow"; GPC honored | GDPR/ePrivacy, Nepal Privacy Act 2075, CCPA; withdrawal deletes visitor data |
+| 2026-09-28 | No session replay, fingerprinting, or precise GPS | Main sources of website-tracking lawsuits |
+| 2026-09-28 | Experience picker becomes `/`; CLI moved to `/cli` | Let visitors pick developer vs standard view; choice remembered |
 
 ---
 

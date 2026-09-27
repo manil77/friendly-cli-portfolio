@@ -3,274 +3,233 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Manil Maharjan — guest@cli</title>
-<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<title>Manil Maharjan — Software Engineer</title>
+<meta name="description" content="Manil Maharjan, software engineer in Nepal. Explore the portfolio as a terminal or as a visual story."/>
+<script>
+  // returning visitors skip straight to the experience they picked (unless they came here to choose again)
+  (function(){
+    var q = new URLSearchParams(location.search); if (q.has('choose')) return;
+    var p; try { p = localStorage.getItem('mm_experience'); } catch(e){}
+    var to = p === 'developer' ? '/cli' : p === 'standard' ? '/home-horizontal' : null;
+    if (to) location.replace(to + location.search);
+  })();
+</script>
+<link href="https://api.fontshare.com/v2/css?f[]=sentient@400,401&f[]=general-sans@400,500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Space+Mono&display=swap" rel="stylesheet"/>
 <style>
   :root{
-    --black:#050a06; --green:#00ff88; --green-bright:#00ff00; --green-dim:#00cc6e; --green-deep:#007a44;
-    --cyan:#00ffff; --amber:#ff7700; --amber-soft:#ffbb66; --error:#ff4d4d; --muted:#2f6b4a; --dim:#4f9a72;
-    --mono:"Fira Code",ui-monospace,monospace;
-    --glow:0 0 6px #00ff0088, 0 0 12px #00ff00aa;
-    --glow-soft:0 0 4px #00ff8866, 0 0 10px #00ff8844;
-    --glow-cyan:0 0 6px #00ffff88, 0 0 14px #00ffff66;
-    --mmc-bg:#020c06; --mmc-fg:#00ff88; --mmc-line:#1d4a30; --mmc-accent:#00ffff; --mmc-font:"Fira Code",ui-monospace,monospace; --mmc-radius:6px;
+    --d-bg:#040906; --d-fg:#00ff88; --d-dim:#3f8a62; --d-cyan:#00ffff; --d-line:#123320;
+    --s-bg:#1A1816; --s-ink:#EFE9DE; --s-dim:#9A8F80; --s-line:#332E28; --s-accent:#E8862E;
+    --ease:cubic-bezier(.16,1,.3,1);
+    --mono:"Fira Code",ui-monospace,monospace; --serif:"Sentient",Georgia,serif; --sans:"General Sans",system-ui,sans-serif; --label:"Space Mono",monospace;
+    --mmc-bg:#1f1c19; --mmc-fg:#EFE9DE; --mmc-line:#3a332c; --mmc-accent:#E8862E; --mmc-font:var(--sans);
   }
-  *{box-sizing:border-box;margin:0;padding:0;}
-  html,body{height:100%;}
-  body{background:#000;color:var(--green);font-family:var(--mono);font-size:16px;line-height:1.7;overflow:hidden;}
-  ::selection{background:var(--green);color:#000;}
-  a{color:var(--cyan);text-shadow:var(--glow-cyan);text-decoration:none;border-bottom:1px dotted var(--cyan);}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:#0d0c0b;color:var(--s-ink);font-family:var(--sans);overflow:hidden;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
 
-  /* CRT layers */
-  .scan{position:fixed;inset:0;pointer-events:none;z-index:50;
-    background:repeating-linear-gradient(0deg,rgba(0,255,0,.05),rgba(0,255,0,.05) 1px,transparent 2px,transparent 4px);
-    animation:scan 3s linear infinite;}
-  @keyframes scan{to{background-position-y:4px;}}
-  .vig{position:fixed;inset:0;pointer-events:none;z-index:49;
-    background:radial-gradient(120% 90% at 50% 45%,transparent 55%,rgba(0,0,0,.75) 100%);}
-  @media(prefers-reduced-motion:reduce){.scan{animation:none;}}
+  /* top bar floats over both halves */
+  .top{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:22px clamp(16px,4vw,44px);
+    font-family:var(--label);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;pointer-events:none}
+  .top .who{color:#f3efe8} .top .greet{color:#b8ad9e;text-align:right}
+  .top .greet.hi{color:var(--s-accent)}
 
-  /* boot */
-  .boot{position:fixed;inset:0;background:#000;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;}
-  .boot .cmd{color:var(--green-bright);text-shadow:var(--glow);letter-spacing:.08em;font-size:18px;}
-  .boot .barwrap{width:min(420px,76vw);height:14px;border:2px solid var(--green-bright);border-radius:6px;background:#001000;overflow:hidden;box-shadow:inset 0 0 10px #00ff00bb;}
-  .boot .bar{height:100%;width:0;background:linear-gradient(90deg,var(--green-bright),var(--green));box-shadow:0 0 10px #00ff00;}
-  .boot .pct{color:var(--muted);font-size:12px;}
-  .boot.hide{opacity:0;transform:translateY(-12px);transition:.5s cubic-bezier(.16,1,.3,1);pointer-events:none;}
+  .ask{position:fixed;left:50%;top:clamp(64px,11vh,110px);transform:translateX(-50%);z-index:20;text-align:center;pointer-events:none;
+    font-family:var(--label);font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:#cfc6b8;
+    background:rgba(13,12,11,.72);backdrop-filter:blur(6px);padding:8px 16px;border-radius:999px;border:1px solid #2c2824;white-space:nowrap}
 
-  /* terminal */
-  .screen{position:relative;z-index:1;height:100vh;display:flex;flex-direction:column;padding:26px clamp(18px,5vw,64px);}
-  .bar-top{display:flex;align-items:center;gap:8px;padding-bottom:14px;border-bottom:1px solid #16271c;margin-bottom:16px;}
-  .bar-top .dot{width:11px;height:11px;border-radius:50%;}
-  .bar-top .r{background:var(--error);} .bar-top .y{background:var(--amber);} .bar-top .g{background:var(--green);}
-  .bar-top .title{margin-left:10px;font-size:12px;color:var(--muted);}
-  .out{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--green-deep) #000;padding-right:8px;}
-  .out::-webkit-scrollbar{width:8px;} .out::-webkit-scrollbar-thumb{background:var(--green-deep);border-radius:10px;}
+  .split{display:flex;height:100vh;height:100dvh}
+  .side{position:relative;flex:1 1 0;min-width:0;overflow:hidden;display:flex;align-items:center;justify-content:center;
+    transition:flex-grow .9s var(--ease);outline:none;cursor:pointer}
+  @media(hover:hover){ .split:hover .side:hover{flex-grow:1.4} }
+  .side:focus-visible .inner{outline:2px solid currentColor;outline-offset:14px;border-radius:6px}
+  .inner{position:relative;z-index:2;width:min(440px,84%);transition:transform .9s var(--ease),opacity .5s}
+  .kicker{display:block;font-family:var(--label);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:22px}
+  .desc{font-size:16px;line-height:1.6;max-width:36ch;margin:14px 0 26px}
+  .cta{display:inline-flex;align-items:center;gap:12px;font-family:var(--label);font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+    padding:12px 18px;border-radius:999px;border:1px solid currentColor;transition:.3s var(--ease)}
+  .key{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:5px;border:1px solid currentColor;font-size:11px;opacity:.7}
+  .last{display:none;margin-top:14px;font-family:var(--label);font-size:11px;letter-spacing:.1em;text-transform:uppercase;opacity:.7}
+  .side.was .last{display:block}
 
-  .block{margin-bottom:18px;animation:fade .5s cubic-bezier(.16,1,.3,1) both;}
-  @keyframes fade{from{opacity:0;transform:translateY(3px);}}
-  .prompt{color:var(--cyan);text-shadow:var(--glow-cyan);}
-  .echo{color:var(--green);}
-  .resp{color:var(--green);text-shadow:var(--glow-soft);}
-  .resp .em{color:#ccffe0;font-weight:500;}
-  .resp .muted{color:var(--dim);}
-  .resp b{color:#ccffe0;font-weight:500;} .resp i{color:var(--dim);}
-  .greet{color:var(--amber);text-shadow:0 0 8px #ff770066;}
-  .err{color:var(--error);text-shadow:0 0 6px #ff000088;}
+  /* ---- developer side ---- */
+  .dev{background:var(--d-bg);color:var(--d-fg)}
+  .dev::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
+    background:repeating-linear-gradient(0deg,rgba(0,255,120,.035),rgba(0,255,120,.035) 1px,transparent 2px,transparent 4px)}
+  .dev::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;background:radial-gradient(90% 70% at 50% 50%,transparent 45%,rgba(0,0,0,.7))}
+  .dev .kicker{color:var(--d-dim)}
+  .dev h2{font-family:var(--mono);font-weight:500;font-size:clamp(34px,4.4vw,58px);letter-spacing:-.02em;text-shadow:0 0 6px #00ff8866,0 0 18px #00ff8833}
+  .dev h2 .p{color:var(--d-cyan);text-shadow:0 0 8px #00ffff66}
+  .caret{display:inline-block;width:.55em;height:.95em;background:var(--d-fg);margin-left:.12em;vertical-align:-.1em;box-shadow:0 0 8px #00ff88aa;animation:blink 1s step-end infinite}
+  @keyframes blink{50%{opacity:0}}
+  .dev .desc{font-family:var(--mono);font-size:14px;color:#8fd9b0}
+  .term{font-family:var(--mono);font-size:13px;line-height:1.75;color:var(--d-fg);border:1px solid var(--d-line);border-radius:8px;padding:14px 16px;
+    background:rgba(0,20,10,.55);min-height:132px;margin-bottom:26px;white-space:pre-wrap}
+  .term .c{color:var(--d-cyan)} .term .m{color:var(--d-dim)}
+  .dev .cta{color:var(--d-fg);box-shadow:0 0 0 0 #00ff8800}
+  .dev:hover .cta,.dev:focus-visible .cta{background:var(--d-fg);color:var(--d-bg);box-shadow:0 0 22px #00ff8866}
 
-  .banner{color:var(--green);text-shadow:var(--glow-soft);font-size:12px;line-height:1.15;margin-bottom:14px;white-space:pre;}
-  .cmdlist{display:flex;flex-direction:column;gap:4px;margin-top:6px;}
-  .cmdrow{display:flex;align-items:center;gap:14px;}
-  .cmdrow .c{color:var(--green);min-width:150px;cursor:pointer;}
-  .cmdrow .c:hover{color:#ccffe0;text-shadow:var(--glow-soft);}
-  .cmdrow .desc{color:var(--dim);font-size:14px;}
-  .badge{display:inline-block;font-size:10px;letter-spacing:.12em;color:#000;background:var(--amber);
-    padding:1px 7px;border-radius:999px;font-weight:600;box-shadow:0 0 8px #ff770099;animation:pulse 1.6s ease-in-out infinite;vertical-align:middle;}
-  @keyframes pulse{50%{opacity:.55;}}
-  .modern .c{color:var(--amber);text-shadow:0 0 8px #ff770066;}
-  .modern .c:hover{color:var(--amber-soft);}
+  /* ---- standard side ---- */
+  .std{background:var(--s-bg);color:var(--s-ink)}
+  .std .kicker{color:var(--s-dim)}
+  .std h2{font-family:var(--serif);font-weight:400;font-size:clamp(38px,4.8vw,64px);line-height:1.02;letter-spacing:-.025em}
+  .std h2 em{font-style:italic;color:var(--s-accent)}
+  .std .desc{color:var(--s-dim)}
+  .std .cta{color:var(--s-ink);border-color:var(--s-accent)}
+  .std:hover .cta,.std:focus-visible .cta{background:var(--s-accent);color:var(--s-bg)}
+  .horizon{position:absolute;left:0;right:0;top:64%;height:1px;background:linear-gradient(90deg,transparent,var(--s-line) 10%,var(--s-line) 90%,transparent);z-index:1}
+  .horizon::after{content:"";position:absolute;top:0;height:1px;width:120px;background:var(--s-accent);opacity:.6;animation:hz 6s var(--ease) infinite}
+  @keyframes hz{0%{left:-120px;opacity:0}20%{opacity:.6}80%{opacity:.6}100%{left:100%;opacity:0}}
+  .ghost{position:absolute;right:-2vw;bottom:6vh;z-index:0;font-family:var(--serif);font-style:italic;font-size:clamp(120px,18vw,260px);line-height:1;
+    color:var(--s-accent);opacity:.06;pointer-events:none;user-select:none;transition:transform 1.2s var(--ease),opacity .8s}
+  .std:hover .ghost{transform:translateX(-3vw);opacity:.1}
+  .cards{position:relative;height:132px;margin-bottom:26px}
+  .card{position:absolute;width:120px;height:92px;border:1px solid var(--s-line);border-radius:10px;background:#231F1C;padding:12px;
+    transition:transform .9s var(--ease)}
+  .card i{display:block;height:6px;border-radius:3px;background:#3a342e;margin-bottom:7px}
+  .card i:first-child{width:22px;background:var(--s-accent)} .card i:nth-child(2){width:70%} .card i:nth-child(3){width:90%}
+  .card:nth-child(1){left:0;top:0} .card:nth-child(2){left:134px;top:30px} .card:nth-child(3){left:268px;top:10px}
+  .std:hover .card:nth-child(1){transform:translateY(-8px)} .std:hover .card:nth-child(2){transform:translateY(-14px)} .std:hover .card:nth-child(3){transform:translateY(-6px)}
 
-  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0;}
-  .chip{border:1px solid #244a34;border-radius:999px;padding:4px 11px;font-size:13px;color:var(--green);}
-  .proj{margin:4px 0 14px;}
-  .proj .pn{color:var(--green);font-weight:600;text-shadow:var(--glow-soft);}
-  .proj .pt{color:var(--muted);font-size:12px;}
-  .proj .pd{color:var(--dim);font-size:14px;}
+  /* the seam between the two worlds */
+  .seam{position:relative;flex:0 0 0;z-index:10}
+  .seam::before{content:"";position:absolute;top:0;bottom:0;left:-1px;width:2px;background:linear-gradient(#00ff8855,#E8862E88)}
+  .seam span{position:absolute;top:50%;left:0;transform:translate(-50%,-50%);width:46px;height:46px;border-radius:50%;display:grid;place-items:center;
+    background:#0d0c0b;border:1px solid #3a332c;font-family:var(--serif);font-style:italic;font-size:17px;color:#d8cfc2}
 
-  .inputline{display:flex;align-items:center;gap:10px;border-top:1px solid #16271c;padding-top:14px;margin-top:8px;}
-  .inputline input{flex:1;background:transparent;border:none;outline:none;color:var(--green);caret-color:var(--green);font-family:inherit;font-size:16px;}
-  .inputline input::placeholder{color:var(--muted);}
-  .cur{display:inline-block;width:10px;height:1.05em;background:var(--green);box-shadow:var(--glow-soft);animation:blink 1s step-end infinite;}
-  @keyframes blink{50%{opacity:0;}}
+  .foot{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;justify-content:center;gap:20px;padding:16px;font-family:var(--label);
+    font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#8f8577}
+  .foot a,.foot button{color:inherit;background:none;border:0;font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer}
+  .foot a:hover,.foot button:hover{color:#f3efe8}
 
-  /* identity badge */
-  .ident{position:fixed;right:clamp(16px,4vw,34px);bottom:clamp(16px,4vh,30px);z-index:40;display:flex;gap:12px;align-items:center;
-    background:rgba(30,15,0,.6);border:1px solid var(--amber);border-radius:8px;padding:10px 14px;box-shadow:0 0 0 1px #ff660033,0 0 14px #ff660033;backdrop-filter:blur(3px);}
-  .ident img{width:44px;height:44px;border-radius:50%;border:2px solid var(--amber);object-fit:cover;}
-  .ident .nm{color:var(--amber);font-weight:600;font-size:15px;line-height:1.3;}
-  .ident .tg{color:var(--amber-soft);font-style:italic;font-size:12px;line-height:1.3;}
-  @media(max-width:600px){.ident{display:none;}}
+  /* leaving: the chosen world swallows the screen */
+  body.leaving .side{transition:flex-grow .7s cubic-bezier(.7,0,.3,1)}
+  body.leaving .side.chosen{flex-grow:40} body.leaving .side:not(.chosen){flex-grow:0}
+  body.leaving .inner,body.leaving .seam,body.leaving .ask,body.leaving .top,body.leaving .foot{opacity:0;transition:opacity .3s}
 
-  /* page-out transition to modern */
-  .wipe{position:fixed;inset:0;z-index:300;background:#000;transform:scaleY(0);transform-origin:bottom;pointer-events:none;}
-  .wipe.go{transform:scaleY(1);transition:transform .55s cubic-bezier(.7,0,.3,1);}
-  .wipe .msg{position:absolute;inset:0;display:grid;place-items:center;color:var(--green-bright);text-shadow:var(--glow);opacity:0;letter-spacing:.1em;}
-  .wipe.go .msg{opacity:1;transition:opacity .3s .25s;}
+  /* phones & narrow screens: stack the two worlds */
+  @media (max-width:760px){
+    body{overflow:auto}
+    .split{flex-direction:column;height:auto;min-height:100dvh}
+    .side{flex:none;min-height:50dvh;padding:132px 0 64px;align-items:flex-start}
+    .top .greet:not(.hi){display:none}
+    .std{padding-top:72px;padding-bottom:84px}
+    .seam{flex:none;height:0}
+    .seam::before{top:-1px;bottom:auto;left:0;right:0;width:auto;height:2px;background:linear-gradient(90deg,#00ff8855,#E8862E88)}
+    .seam span{left:50%}
+    .ask{position:absolute;top:58px}
+    .top{position:absolute}
+    .foot{position:static;background:var(--s-bg);flex-wrap:wrap}
+    .term{min-height:0} .cards{display:none}
+    body.leaving .side.chosen{min-height:100dvh}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+  }
 </style>
 </head>
 <body>
-  <!-- BOOT -->
-  <div class="boot" id="boot">
-    <div class="cmd">guest@cli:~$ initializing system…</div>
-    <div class="barwrap"><div class="bar" id="bootbar"></div></div>
-    <div class="pct" id="bootpct">0%</div>
-  </div>
+  <header class="top">
+    <span class="who">Manil Maharjan</span>
+    <span class="greet" id="greet">Software engineer · Nepal</span>
+  </header>
+  <div class="ask">How would you like to explore?</div>
 
-  <div class="screen">
-    <div class="bar-top">
-      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
-      <span class="title">guest@cli:~ — manil maharjan</span>
-    </div>
-    <div class="out" id="out"></div>
-    <div class="inputline" id="inputline" onclick="document.getElementById('cmd').focus()">
-      <span class="prompt">guest@cli:~$</span>
-      <input id="cmd" autocomplete="off" spellcheck="false" autofocus placeholder="type a command — try 'help'"/>
-    </div>
-  </div>
+  <main class="split">
+    <a class="side dev" href="/cli" data-choice="developer" aria-label="Developer experience: explore the portfolio as a command-line terminal">
+      <div class="inner">
+        <span class="kicker">01 — For developers</span>
+        <h2><span class="p">&gt;</span> terminal<span class="caret"></span></h2>
+        <p class="desc">Explore by typing commands. Keyboard-first, fast, and a little nerdy.</p>
+        <pre class="term" id="term" aria-hidden="true"></pre>
+        <span class="cta">Enter the terminal <span class="key">D</span></span>
+        <span class="last">↺ your last choice</span>
+      </div>
+    </a>
 
-  <div class="ident">
-    <img src="assets/avatar.jpg" alt="Manil"/>
-    <div><div class="nm">Manil Maharjan</div><div class="tg">Software Engineer</div></div>
-  </div>
+    <div class="seam" aria-hidden="true"><span>or</span></div>
 
-  <div class="scan"></div>
-  <div class="vig"></div>
-  <div class="wipe" id="wipe"><div class="msg">loading modern view…</div></div>
+    <a class="side std" href="/home-horizontal?intro=1" data-choice="standard" aria-label="Standard experience: a visual, scrolling portfolio">
+      <span class="horizon"></span>
+      <span class="ghost">care.</span>
+      <div class="inner">
+        <span class="kicker">02 — For everyone</span>
+        <h2>A visual <em>story.</em></h2>
+        <p class="desc">A calm, scrolling walk through my work, history, and how to reach me.</p>
+        <div class="cards" aria-hidden="true">
+          <div class="card"><i></i><i></i><i></i></div><div class="card"><i></i><i></i><i></i></div><div class="card"><i></i><i></i><i></i></div>
+        </div>
+        <span class="cta">View the portfolio <span class="key">S</span></span>
+        <span class="last">↺ your last choice</span>
+      </div>
+    </a>
+  </main>
 
-  <script src="/js/content.js"></script>
+  <footer class="foot">
+    <span>We'll remember your pick · switch anytime</span>
+    <a href="/privacy">Privacy</a>
+    <button type="button" data-privacy-settings>Cookie settings</button>
+  </footer>
+
   <script src="/js/track.js"></script>
-  <script src="/js/lead.js"></script>
   <script>
   (function(){
-    var out = document.getElementById('out'), input = document.getElementById('cmd');
-    var esc = MMContent.esc, url = MMContent.url, extra = {}, resumeUrl = '';
-    var log = [], logIdx = -1;
-
-    var banner =
-"  __  __             _ _\n"+
-" |  \\/  | __ _ _ __ (_) |\n"+
-" | |\\/| |/ _` | '_ \\| | |\n"+
-" | |  | | (_| | | | | | |\n"+
-" |_|  |_|\\__,_|_| |_|_|_|";
-
-    function el(html){ var d=document.createElement('div'); d.className='block'; d.innerHTML=html; return d; }
-    function scroll(){ out.scrollTop = out.scrollHeight; }
-    function echo(cmd){ return '<div><span class="prompt">guest@cli:~$</span> <span class="echo">'+cmd+'</span></div>'; }
-
-    var commands = {
-      help: function(){
-        var rows = [
-          ['about','who I am'],
-          ['skills','what I work with'],
-          ['projects','selected work'],
-          ['experience','where I\'ve been'],
-          ['contact','how to reach me'],
-          ['hire','send me a project enquiry']
-        ];
-        if (resumeUrl) rows.push(['resume','download my résumé']);
-        Object.keys(extra).forEach(function(k){ rows.push([k, extra[k].description || '']); });
-        rows.push(['privacy','tracking & cookie settings'], ['clear','clear the screen']);
-        var html = '<div class="resp"><span class="em">Available commands</span><div class="cmdlist">';
-        rows.forEach(function(r){ html += '<div class="cmdrow"><span class="c" data-cmd="'+r[0]+'">'+r[0]+'</span><span class="desc">'+r[1]+'</span></div>'; });
-        // the special one
-        html += '<div class="cmdrow modern"><span class="c" data-cmd="switch-modern">switch-modern</span> <span class="badge">NEW</span><span class="desc">enter the modern visual portfolio →</span></div>';
-        html += '</div><div class="muted" style="margin-top:8px">tip: click a command or type it and press enter</div></div>';
-        return html;
-      },
-      about: function(){ return '<div class="resp">Hey there! I\'m a <span class="em">software engineer</span> who loves turning coffee into code.<br/><br/>'+
-        'I\'ve spent the last 3 years building web apps with <span class="em">.NET</span>, <span class="em">NestJS</span> and PostgreSQL. I\'m obsessed with clean UIs, smooth UX, and making things intuitive.<br/><br/>'+
-        '<span class="muted">Outside of coding, you\'ll find me sketching ideas or gaming with friends.</span></div>'; },
-      skills: function(){ return '<div class="resp"><span class="em">Things I know my way around</span>'+
-        '<div class="chips"><span class="chip">JavaScript</span><span class="chip">TypeScript</span><span class="chip">.NET</span><span class="chip">NestJS</span><span class="chip">PostgreSQL</span><span class="chip">SQL Server</span><span class="chip">Entity Framework</span><span class="chip">Dapper</span><span class="chip">Tailwind</span><span class="chip">Azure DevOps</span><span class="chip">Git</span></div></div>'; },
-      projects: function(){ return '<div class="resp">'+
-        '<div class="proj"><span class="pn">RemitX</span> <span class="pt">· .NET · SQL Server · Azure</span><div class="pd">White-label remittance platform for secure cross-border transfers.</div></div>'+
-        '<div class="proj"><span class="pn">HUKU</span> <span class="pt">· NestJS · Nunjucks · SQLite</span><div class="pd">A slick real-estate platform built end to end.</div></div>'+
-        '<div class="proj"><span class="pn">Heifer PMIS</span> <span class="pt">· .NET · PostgreSQL</span><div class="pd">Project management &amp; PMER for NGOs.</div></div>'+
-        '<span class="muted">→ see these with visuals: run </span><span class="c" data-cmd="switch-modern" style="color:var(--amber);cursor:pointer">switch-modern</span></div>'; },
-      experience: function(){ return '<div class="resp">'+
-        '<div class="proj"><span class="pn">.NET Developer</span> <span class="pt">· Inficare · Feb 2024 — now</span><div class="pd">Partner API integration; upgraded .NET 4.7.2 → .NET 8 (Clean Architecture).</div></div>'+
-        '<div class="proj"><span class="pn">.NET Developer</span> <span class="pt">· Team Next · Apr 2022 — Feb 2024</span><div class="pd">Lead dev for Heifer Cambodia\'s PMER system; mentored juniors.</div></div>'+
-        '<div class="proj"><span class="pn">NestJS Developer</span> <span class="pt">· Freelance · HUKU · 2025</span><div class="pd">Built a full real-estate platform end to end.</div></div></div>'; },
-      contact: function(){ return '<div class="resp">Got a project, idea, or just want to say hi?<br/><br/>'+
-        '<span class="muted">email&nbsp;&nbsp;&nbsp;</span> <a href="mailto:manil.maharjan07@gmail.com">manil.maharjan07@gmail.com</a><br/>'+
-        '<span class="muted">linkedin</span> <a href="https://www.linkedin.com/in/iammanil" target="_blank" rel="noreferrer">linkedin.com/in/iammanil</a><br/>'+
-        '<span class="muted">phone&nbsp;&nbsp;&nbsp;</span> <span style="color:var(--green)">+977 9863777960</span></div>'; },
-      hire: function(){ setTimeout(MMLead.open, 150); return '<div class="resp">› opening project form… <span class="muted">(or email me — run</span> <span class="c" data-cmd="contact" style="color:var(--cyan);cursor:pointer">contact</span><span class="muted">)</span></div>'; },
-      privacy: function(){ setTimeout(MMTrack.openSettings, 150);
-        return '<div class="resp">Anonymous, cookie-free counts are always on. Detailed tracking only happens if you allow it.<br/><span class="muted">status:</span> '+(MMTrack.hasConsent()?'<b>allowed</b>':'<b>off</b>')+' · <a href="/privacy">read the privacy notice</a></div>'; }
-    };
-
-    // CMS-driven output replaces the built-in defaults once content arrives
-    MMContent.ready.then(function(C){
-      if(!C) return;
-      var p = C.profile || {};
-      resumeUrl = url(p.resume);
-      if (p.avatar) document.querySelector('.ident img').src = p.avatar;
-      document.querySelector('.ident .nm').textContent = p.name || '';
-      document.querySelector('.ident .tg').textContent = p.role || '';
-      if (C.cli && C.cli.about) commands.about = function(){ return '<div class="resp">'+C.cli.about+'</div>'; };
-      commands.skills = function(){ return '<div class="resp"><span class="em">Things I know my way around</span><div class="chips">'+
-        (C.skills||[]).map(function(s){ return '<span class="chip">'+esc(s)+'</span>'; }).join('')+'</div></div>'; };
-      commands.projects = function(){ return '<div class="resp">'+(C.projects||[]).map(function(x){
-        var name = url(x.url) ? '<a href="'+url(x.url)+'" target="_blank" rel="noreferrer" data-track="project:'+esc(x.name)+'">'+esc(x.name)+'</a>' : esc(x.name);
-        return '<div class="proj"><span class="pn">'+name+'</span> <span class="pt">· '+esc(x.stack)+'</span><div class="pd">'+x.summary+'</div></div>'; }).join('')+
-        '<span class="muted">→ see these with visuals: run </span><span class="c" data-cmd="switch-modern" style="color:var(--amber);cursor:pointer">switch-modern</span></div>'; };
-      commands.experience = function(){ return '<div class="resp">'+(C.timeline||[]).slice().reverse().map(function(t){
-        return '<div class="proj"><span class="pn">'+esc(t.role)+'</span> <span class="pt">· '+esc(t.company)+' · '+esc(t.period.toLowerCase())+'</span><div class="pd">'+t.description+'</div></div>'; }).join('')+'</div>'; };
-      commands.contact = function(){
-        var rows = '<span class="muted">email&nbsp;&nbsp;&nbsp;</span> <a href="mailto:'+esc(p.email)+'">'+esc(p.email)+'</a><br/>';
-        (C.socials||[]).forEach(function(s){ rows += '<span class="muted">'+esc(s.label.toLowerCase())+'</span> <a href="'+url(s.url)+'" target="_blank" rel="noreferrer">'+esc(s.url.replace(/^https?:\/\/(www\.)?/,''))+'</a><br/>'; });
-        if (p.phone) rows += '<span class="muted">phone&nbsp;&nbsp;&nbsp;</span> <span style="color:var(--green)">'+esc(p.phone)+'</span>';
-        return '<div class="resp">Got a project, idea, or just want to say hi? <span class="muted">(or run</span> <span class="c" data-cmd="hire" style="color:var(--cyan);cursor:pointer">hire</span><span class="muted">)</span><br/><br/>'+rows+'</div>'; };
-      if (resumeUrl) commands.resume = function(){ MMTrack.track('download','resume'); window.open(resumeUrl,'_blank');
-        return '<div class="resp">› downloading résumé… <a href="'+resumeUrl+'" target="_blank" rel="noreferrer">direct link</a></div>'; };
-      extra = {};
-      (C.cli && C.cli.commands || []).forEach(function(k){ extra[k.name] = k; commands[k.name] = function(){ return '<div class="resp">'+k.output+'</div>'; }; });
-    });
-
-    // personal tracked link greeting (?via=...)
-    document.addEventListener('mm:greeting', function(e){
-      out.appendChild(el('<div class="greet">› '+esc(e.detail)+'</div>')); scroll();
-    });
-
-    function run(raw){
-      var cmd = raw.trim().toLowerCase();
-      if(!cmd) return;
-      log.push(cmd); logIdx = log.length;
-      var known = cmd==='clear'||cmd==='cls'||cmd==='switch-modern'||cmd==='modern'||cmd==='switch'||!!commands[cmd];
-      MMTrack.track('command', cmd.slice(0,40), known?'ok':'unknown');
-      if(cmd==='clear'||cmd==='cls'){ out.innerHTML=''; return; }
-      if(cmd==='switch-modern'||cmd==='modern'||cmd==='switch'){ switchModern(cmd); return; }
-      var fn = commands[cmd];
-      if(fn){ out.appendChild(el(echo(esc(cmd))+fn())); }
-      else { out.appendChild(el(echo(esc(cmd))+'<div class="err">command not found: '+esc(cmd)+'. type <span style="color:var(--cyan)">help</span> for options.</div>')); }
-      scroll();
-    }
-
-    function switchModern(cmd){
-      out.appendChild(el(echo(cmd)+'<div class="resp">› booting modern visual portfolio<span class="cur"></span></div>'));
-      scroll();
-      var wipe = document.getElementById('wipe');
-      setTimeout(function(){ wipe.classList.add('go'); }, 450);
-      setTimeout(function(){ window.location.href = 'home-horizontal.html?intro=1'; }, 1150);
-    }
-
-    // expose for clicks
-    document.addEventListener('click', function(e){
-      var c = e.target.closest('[data-cmd]'); if(!c) return;
-      var cmd = c.getAttribute('data-cmd'); input.value=''; run(cmd); input.focus();
-    });
-
-    input.addEventListener('keydown', function(e){
-      if(e.key==='Enter'){ run(input.value); input.value=''; }
-      else if(e.key==='ArrowUp'){ e.preventDefault(); if(log.length){ logIdx=Math.max(0,logIdx-1); input.value=log[logIdx]||''; } }
-      else if(e.key==='ArrowDown'){ e.preventDefault(); if(logIdx<log.length){ logIdx++; input.value=log[logIdx]||''; } }
-    });
-
-    // boot sequence
-    var boot=document.getElementById('boot'), bar=document.getElementById('bootbar'), pct=document.getElementById('bootpct');
+    var KEY = 'mm_experience';
     var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    function startTerminal(){
-      out.appendChild(el('<div class="banner">'+banner+'</div><div class="resp">welcome — type <span style="color:var(--cyan)">help</span> or click a command to explore. <span class="muted">(looking for the visual site? run </span><span class="c" data-cmd="switch-modern" style="color:var(--amber);cursor:pointer">switch-modern</span><span class="muted">)</span></div>'));
-      out.appendChild(el(echo('help')+commands.help()));
-      scroll(); input.focus();
+
+    // mark the previous choice when someone comes back to switch
+    var prev; try { prev = localStorage.getItem(KEY); } catch(e){}
+    if (prev) { var ps = document.querySelector('[data-choice="'+prev+'"]'); if (ps) ps.classList.add('was'); }
+
+    // personal tracked-link greeting
+    document.addEventListener('mm:greeting', function(e){ var g = document.getElementById('greet'); g.textContent = e.detail; g.classList.add('hi'); });
+
+    // typing terminal preview
+    var lines = [
+      ['c','$ whoami'], ['','manil — software engineer, nepal'],
+      ['c','$ ls projects/'], ['','remitx/  huku/  heifer-pmis/'],
+      ['c','$ stack --top'], ['m','.net · nestjs · postgresql']
+    ];
+    var term = document.getElementById('term');
+    function render(n, partial){
+      term.innerHTML = lines.slice(0, n).map(function(l){ return '<span class="'+l[0]+'">'+l[1]+'</span>'; }).join('\n') +
+        (partial != null ? (n ? '\n' : '') + '<span class="'+lines[n][0]+'">'+partial+'</span>' : '');
     }
-    if(reduce){ boot.style.display='none'; startTerminal(); }
+    if (reduce) render(lines.length);
     else {
-      var n=0; var iv=setInterval(function(){ n+=Math.random()*13+6; if(n>=100){n=100;clearInterval(iv);
-        setTimeout(function(){ boot.classList.add('hide'); startTerminal(); }, 380); }
-        bar.style.width=n+'%'; pct.textContent=Math.floor(n)+'%'; }, 200);
+      var li = 0, ci = 0;
+      (function type(){
+        if (li >= lines.length) return;
+        var l = lines[li];
+        if (l[0] !== 'c') { li++; render(li); return setTimeout(type, 280); }       // output lines appear at once
+        ci++; render(li, l[1].slice(0, ci));
+        if (ci >= l[1].length) { li++; ci = 0; render(li); return setTimeout(type, 380); }
+        setTimeout(type, 45 + Math.random()*60);
+      })();
     }
+
+    // choose → remember, track, animate, go
+    function go(side){
+      if (document.body.classList.contains('leaving')) return;
+      var choice = side.getAttribute('data-choice');
+      try { localStorage.setItem(KEY, choice); } catch(e){}
+      if (window.MMTrack) MMTrack.track('theme', choice);
+      side.classList.add('chosen');
+      document.body.classList.add('leaving');
+      setTimeout(function(){ location.href = side.getAttribute('href'); }, reduce ? 0 : 650);
+    }
+    document.querySelectorAll('[data-choice]').forEach(function(side){
+      side.addEventListener('click', function(e){ if (e.metaKey || e.ctrlKey || e.shiftKey) return; e.preventDefault(); go(side); });
+    });
+    addEventListener('keydown', function(e){
+      if (e.target.closest && e.target.closest('input,textarea,.mmc')) return;
+      var k = e.key.toLowerCase();
+      if (k === 'd') go(document.querySelector('.dev'));
+      if (k === 's') go(document.querySelector('.std'));
+    });
+    // back/forward cache: undo the exit animation if the page is restored
+    addEventListener('pageshow', function(e){ if (e.persisted) { document.body.classList.remove('leaving'); document.querySelectorAll('.chosen').forEach(function(s){ s.classList.remove('chosen'); }); } });
   })();
   </script>
 </body>

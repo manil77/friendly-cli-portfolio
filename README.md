@@ -17,7 +17,7 @@ Without `DATABASE_URL` the dev server uses an embedded Postgres (PGlite) in `.da
 
 ## Structure
 
-- `public/` — the static site (CLI `index.html`, modern `home-horizontal.html`, `privacy.html`, `admin/`)
+- `public/` — the static site: `index.html` (experience picker, remembers the choice), `cli.html` (terminal), `home-horizontal.html` (modern), `privacy.html`, `admin/`
 - `public/js/` — `track.js` (consent banner + first-party tracking), `lead.js` (Work-with-me form), `content.js` / `modern-content.js` (CMS rendering)
 - `api/` — Vercel functions: `collect` (tracking), `lead`, `content`, `admin`, `cron` (data retention)
 - `lib/` — database, content model, integrations (ipinfo, Resend), auth, sanitizing
