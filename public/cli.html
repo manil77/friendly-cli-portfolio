@@ -230,7 +230,7 @@
       var known = cmd==='home'||cmd==='exit'||cmd==='clear'||cmd==='cls'||cmd==='switch-modern'||cmd==='modern'||cmd==='switch'||!!commands[cmd];
       MMTrack.track('command', cmd.slice(0,40), known?'ok':'unknown');
       if(cmd==='clear'||cmd==='cls'){ out.innerHTML=''; return; }
-      if(cmd==='home'||cmd==='exit'){ location.href='/?choose=1'; return; }
+      if(cmd==='home'||cmd==='exit'){ location.href='/'; return; }
       if(cmd==='switch-modern'||cmd==='modern'||cmd==='switch'){ switchModern(cmd); return; }
       var fn = commands[cmd];
       if(fn){ out.appendChild(el(echo(esc(cmd))+fn())); }

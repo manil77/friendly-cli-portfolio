@@ -124,7 +124,7 @@ Track every experiment so we keep what works and kill what doesn't.
 | 2026-09-28 | Vercel + Neon Postgres + Blob, custom first-party tracking | Own the data, cookieless by default, no third-party pixels (CIPA/GDPR risk) |
 | 2026-09-28 | Two-tier consent: anonymous always, detailed only after "Allow"; GPC honored | GDPR/ePrivacy, Nepal Privacy Act 2075, CCPA; withdrawal deletes visitor data |
 | 2026-09-28 | No session replay, fingerprinting, or precise GPS | Main sources of website-tracking lawsuits |
-| 2026-09-28 | Experience picker becomes `/`; CLI moved to `/cli` | Let visitors pick developer vs standard view; choice remembered |
+| 2026-09-28 | Experience picker becomes `/`; CLI moved to `/cli` | Let visitors pick developer vs standard view; shown on every visit to `/` |
 
 ---
 

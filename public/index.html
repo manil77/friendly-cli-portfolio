@@ -5,15 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Manil Maharjan — Software Engineer</title>
 <meta name="description" content="Manil Maharjan, software engineer in Nepal. Explore the portfolio as a terminal or as a visual story."/>
-<script>
-  // returning visitors skip straight to the experience they picked (unless they came here to choose again)
-  (function(){
-    var q = new URLSearchParams(location.search); if (q.has('choose')) return;
-    var p; try { p = localStorage.getItem('mm_experience'); } catch(e){}
-    var to = p === 'developer' ? '/cli' : p === 'standard' ? '/home-horizontal' : null;
-    if (to) location.replace(to + location.search);
-  })();
-</script>
 <link href="https://api.fontshare.com/v2/css?f[]=sentient@400,401&f[]=general-sans@400,500&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Space+Mono&display=swap" rel="stylesheet"/>
 <style>
@@ -50,8 +41,6 @@
   .cta{display:inline-flex;align-items:center;gap:12px;font-family:var(--label);font-size:12px;letter-spacing:.1em;text-transform:uppercase;
     padding:12px 18px;border-radius:999px;border:1px solid currentColor;transition:.3s var(--ease)}
   .key{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:5px;border:1px solid currentColor;font-size:11px;opacity:.7}
-  .last{display:none;margin-top:14px;font-family:var(--label);font-size:11px;letter-spacing:.1em;text-transform:uppercase;opacity:.7}
-  .side.was .last{display:block}
 
   /* ---- developer side ---- */
   .dev{background:var(--d-bg);color:var(--d-fg)}
@@ -144,7 +133,6 @@
         <p class="desc">Explore by typing commands. Keyboard-first, fast, and a little nerdy.</p>
         <pre class="term" id="term" aria-hidden="true"></pre>
         <span class="cta">Enter the terminal <span class="key">D</span></span>
-        <span class="last">↺ your last choice</span>
       </div>
     </a>
 
@@ -161,13 +149,11 @@
           <div class="card"><i></i><i></i><i></i></div><div class="card"><i></i><i></i><i></i></div><div class="card"><i></i><i></i><i></i></div>
         </div>
         <span class="cta">View the portfolio <span class="key">S</span></span>
-        <span class="last">↺ your last choice</span>
       </div>
     </a>
   </main>
 
   <footer class="foot">
-    <span>We'll remember your pick · switch anytime</span>
     <a href="/privacy">Privacy</a>
     <button type="button" data-privacy-settings>Cookie settings</button>
   </footer>
@@ -175,12 +161,7 @@
   <script src="/js/track.js"></script>
   <script>
   (function(){
-    var KEY = 'mm_experience';
     var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    // mark the previous choice when someone comes back to switch
-    var prev; try { prev = localStorage.getItem(KEY); } catch(e){}
-    if (prev) { var ps = document.querySelector('[data-choice="'+prev+'"]'); if (ps) ps.classList.add('was'); }
 
     // personal tracked-link greeting
     document.addEventListener('mm:greeting', function(e){ var g = document.getElementById('greet'); g.textContent = e.detail; g.classList.add('hi'); });
@@ -209,11 +190,10 @@
       })();
     }
 
-    // choose → remember, track, animate, go
+    // choose → track, animate, go
     function go(side){
       if (document.body.classList.contains('leaving')) return;
       var choice = side.getAttribute('data-choice');
-      try { localStorage.setItem(KEY, choice); } catch(e){}
       if (window.MMTrack) MMTrack.track('theme', choice);
       side.classList.add('chosen');
       document.body.classList.add('leaving');
