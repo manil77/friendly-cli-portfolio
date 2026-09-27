@@ -13,7 +13,7 @@
     --s-bg:#1A1816; --s-ink:#EFE9DE; --s-dim:#9A8F80; --s-line:#332E28; --s-accent:#E8862E;
     --ease:cubic-bezier(.16,1,.3,1);
     --mono:"Fira Code",ui-monospace,monospace; --serif:"Sentient",Georgia,serif; --sans:"General Sans",system-ui,sans-serif; --label:"Space Mono",monospace;
-    --mmc-bg:#1f1c19; --mmc-fg:#EFE9DE; --mmc-line:#3a332c; --mmc-accent:#E8862E; --mmc-font:var(--sans);
+    --mmc-bg:#1f1c19; --mmc-fg:#EFE9DE; --mmc-accent:#E8862E; --mmc-font:var(--sans); --mmc-serif:var(--serif); --mmc-label:var(--label);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
@@ -25,10 +25,6 @@
     font-family:var(--label);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;pointer-events:none}
   .top .who{color:#f3efe8} .top .greet{color:#b8ad9e;text-align:right}
   .top .greet.hi{color:var(--s-accent)}
-
-  .ask{position:fixed;left:50%;top:clamp(64px,11vh,110px);transform:translateX(-50%);z-index:20;text-align:center;pointer-events:none;
-    font-family:var(--label);font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:#cfc6b8;
-    background:rgba(13,12,11,.72);backdrop-filter:blur(6px);padding:8px 16px;border-radius:999px;border:1px solid #2c2824;white-space:nowrap}
 
   .split{display:flex;height:100vh;height:100dvh}
   .side{position:relative;flex:1 1 0;min-width:0;overflow:hidden;display:flex;align-items:center;justify-content:center;
@@ -95,19 +91,18 @@
   /* leaving: the chosen world swallows the screen */
   body.leaving .side{transition:flex-grow .7s cubic-bezier(.7,0,.3,1)}
   body.leaving .side.chosen{flex-grow:40} body.leaving .side:not(.chosen){flex-grow:0}
-  body.leaving .inner,body.leaving .seam,body.leaving .ask,body.leaving .top,body.leaving .foot{opacity:0;transition:opacity .3s}
+  body.leaving .inner,body.leaving .seam,body.leaving .top,body.leaving .foot{opacity:0;transition:opacity .3s}
 
   /* phones & narrow screens: stack the two worlds */
   @media (max-width:760px){
     body{overflow:auto}
     .split{flex-direction:column;height:auto;min-height:100dvh}
-    .side{flex:none;min-height:50dvh;padding:132px 0 64px;align-items:flex-start}
+    .side{flex:none;min-height:50dvh;padding:96px 0 64px;align-items:flex-start}
     .top .greet:not(.hi){display:none}
     .std{padding-top:72px;padding-bottom:84px}
     .seam{flex:none;height:0}
     .seam::before{top:-1px;bottom:auto;left:0;right:0;width:auto;height:2px;background:linear-gradient(90deg,#00ff8855,#E8862E88)}
     .seam span{left:50%}
-    .ask{position:absolute;top:58px}
     .top{position:absolute}
     .foot{position:static;background:var(--s-bg);flex-wrap:wrap}
     .term{min-height:0} .cards{display:none}
@@ -123,7 +118,6 @@
     <span class="who">Manil Maharjan</span>
     <span class="greet" id="greet">Software engineer · Nepal</span>
   </header>
-  <div class="ask">How would you like to explore?</div>
 
   <main class="split">
     <a class="side dev" href="/cli" data-choice="developer" aria-label="Developer experience: explore the portfolio as a command-line terminal">
@@ -169,7 +163,7 @@
     // typing terminal preview
     var lines = [
       ['c','$ whoami'], ['','manil — software engineer, nepal'],
-      ['c','$ ls projects/'], ['','remitx/  huku/  heifer-pmis/'],
+      ['c','$ help'], ['','about  skills  experience  contact  hire'],
       ['c','$ stack --top'], ['m','.net · nestjs · postgresql']
     ];
     var term = document.getElementById('term');
